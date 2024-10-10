@@ -1,0 +1,260 @@
+/* General Layout */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    color: #343a40;
+}
+
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Header */
+.header {
+    background-color: #343a40;
+    color: white;
+    padding: 15px;
+    text-align: center;
+}
+
+/* Link styling */
+.dashboard-link {
+    color: white;
+    text-decoration: none;
+    font-size: 30px;
+}
+
+.dashboard-link:hover {
+    cursor: pointer;
+}
+
+
+/* Sidebar Menu */
+.sidebar {
+    width: 230px;
+    background-color: #e9ecef;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.menu-bar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.menu-bar li {
+    margin: 15px 0;
+}
+
+/* Button Base Styles */
+.btn {
+    background-color: #495057;
+    color: #ffffff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Hover and Active Effects */
+.btn:hover {
+    background-color: #343a40;
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    background-color: #adb5bd;
+    transform: translateY(0);
+}
+
+/* Styling the submit button */
+.btn-submit {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #495057; /* Primary blue color */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: 100%;
+    max-width: 200px;
+    text-align: center;
+}
+
+/* Hover effect */
+.btn-submit:hover {
+    background-color: #343a40; /* Darker blue for hover */
+    transform: scale(1.05); /* Slight enlarge effect */
+}
+
+/* Active (clicked) state */
+.btn-submit:active {
+    background-color: #003d80; /* Even darker blue for active state */
+    transform: scale(0.98); /* Slight shrink effect */
+}
+
+/* Disable the button (when needed) */
+.btn-submit:disabled {
+    background-color: #ccc; /* Gray color for disabled button */
+    cursor: not-allowed; /* Change cursor to indicate disabled */
+}
+
+/* Menu Button */
+.btn-menu {
+    display: block;
+    padding: 12px 15px;
+    background-color: #ced4da;
+    color: #495057;
+    text-decoration: none;
+    text-align: center;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-menu:hover {
+    background-color: #adb5bd;
+}
+
+/* Main Content */
+.content {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-content {
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #f1f3f5;
+}
+
+/* Dropdown Container */
+.dropdown {
+    margin-bottom: 20px;
+}
+
+/* Dropdown Label */
+.dropdown label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Dropdown Select Box */
+.dropdown select {
+    width: 100%;
+    padding: 10px;
+    margin-right: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    background-color: #ffffff;
+    color: #495057;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+/* Hover and Focus Effects */
+.dropdown select:hover, .dropdown select:focus {
+    border-color: #80bdff;
+    outline: none;
+    background-color: #f8f9fa;
+}
+
+/* Dropdown Options */
+.dropdown option {
+    padding: 10px;
+    background-color: #ffffff;
+    color: #495057;
+}
+
+.dropdown option:hover {
+    background-color: #e9ecef;
+}
+
+.date-input {
+    margin-bottom: 15px; /* Add spacing between inputs */
+}
+
+.date-input label {
+    display: block;
+    margin-bottom: 5px; /* Spacing between label and input */
+    font-weight: bold; /* Make the label bold */
+}
+
+.date-input input[type="date"] {
+    width: 98%; /* Full width */
+    padding: 10px; /* Add padding */
+    border: 1px solid #ced4da; /* Border style */
+    border-radius: 5px; /* Rounded corners */
+    transition: border-color 0.3s; /* Smooth transition for focus effect */
+}
+
+.date-input input[type="date"]:focus {
+    border-color: #80bdff; /* Change border color on focus */
+    outline: none; /* Remove default outline */
+}
+
+.textfield {
+    margin-bottom: 15px;
+}
+
+.textfield label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.textfield input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.textfield input:focus {
+    border-color: #495057;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+}
+
+/* General styling for form group */
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* Label styling */
+.form-group label {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: inline-block;
+}
+
+/* Input field styling */
+.form-group input.form-control {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+/* Input field focus state */
+.form-group input.form-control:focus {
+    border-color: #007bff;  /* Change border color to blue on focus */
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}

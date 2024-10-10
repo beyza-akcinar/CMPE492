@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni Hasta{% endblock %}
+
+{% block content %}
+{% load static %}
+    <div class="dashboard-content">
+        <h2>Yeni Hasta Kaydı</h2>
+        
+        <form method="POST" action="{% url 'new_patient' %}">  <!-- Adjust the action URL as necessary -->
+            {% csrf_token %}
+            
+            {% include 'components/textfield.html' with id='patient-name' label='Hasta Adı' name='patient_name' value='' placeholder='Hasta adını giriniz' style_class='form-control' %}
+            
+            {% include 'components/textfield.html' with id='patient-surname' label='Hasta Soyadı' name='patient_surname' value='' placeholder='Hasta soyadını giriniz' style_class='form-control' %}
+
+            {% include 'components/dropdown.html' with id='education-status' label='Eğitim Durumu' name='education_status' options=egitim_durum_options %}
+            
+            {% include 'components/dropdown.html' with id='city' label='Yaşadığı Şehir' name='city' options=city_options %}
+
+            {% include 'components/dropdown.html' with id='medeni' label='Medeni Durum' name='medeni' options=medeni_durum_options %}
+
+            {% include 'components/dropdown.html' with id='cinsiyet' label='Cinsiyet' name='cinsiyet' options=cinsiyet_options %}
+
+            {% include 'components/numberinput.html' with id='patient-age' label='Yaş' name='patient_age' style_class='form-control' placeholder='Yaşınızı giriniz' %}
+            
+            <button type="submit" class="btn-submit">Kaydet</button>
+        </form>
+    </div>
+{% endblock %}

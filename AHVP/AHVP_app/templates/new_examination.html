@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni Muayene{% endblock %}
+
+{% block content %}
+{% load static %}
+    <div class="dashboard-content">
+        <h2>Yeni Muayene Oluştur</h2>
+        
+        <form method="POST" action="{% url 'new_examination' %}">  <!-- Adjust the action URL as necessary -->
+            {% csrf_token %}
+
+            {% include 'components/dropdown.html' with id='hasta' label='Hasta Seçin' name='hasta' options=hasta_options %}
+
+            {% include 'components/dateinput.html' with id='visit-date' label='Muayene Tarihi' name='visit_date' %}
+            
+            <button type="submit" class="btn-submit">Kaydet</button>
+        </form>
+    </div>
+{% endblock %}
