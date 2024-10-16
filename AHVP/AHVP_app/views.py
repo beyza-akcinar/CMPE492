@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import Hasta, Muayene
+from .forms import MuayeneForm
 
 def home_view(request):
     return render(request, 'home.html')
@@ -7,26 +8,15 @@ def home_view(request):
 
 def new_examination_view(request):
     if request.method == 'POST':
-        # Get data from the form
-        hasta_id = request.POST.get('hasta')
-        visit_date = request.POST.get('visit_date')
+        form = MuayeneForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')  # Redirect to home or a success page
+    else:
+        form = MuayeneForm()
+    
+    return render(request, 'new_examination.html', {'form': form})
 
-        # Create a new Muayene instance and save to the database
-        new_examination = Muayene(
-            hasta_id=hasta_id,
-            # The encrypted date will be set automatically in the save method
-        )
-        new_examination.save()
-
-        return redirect('home') 
-
-    # Fetch all Hasta records and combine names and surnames
-    hasta_list = Hasta.objects.all()
-    hasta_options = [(hasta.unique_hasta_id, f"{hasta.isim} {hasta.soyisim}") for hasta in hasta_list]
-
-    return render(request, 'new_examination.html', {
-        'hasta_options': hasta_options,
-    })
 
 def new_patient_view(request):
     if request.method == 'POST':
