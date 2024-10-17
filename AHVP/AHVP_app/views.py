@@ -15,7 +15,13 @@ def new_examination_view(request):
     else:
         form = MuayeneForm()
     
-    return render(request, 'new_examination.html', {'form': form})
+    hasta_list = Hasta.objects.all()
+    hasta_options = [(hasta.unique_hasta_id, f"{hasta.isim} {hasta.soyisim}") for hasta in hasta_list]
+
+    return render(request, 'new_examination.html', {
+        'hasta_options': hasta_options,
+        'form': form
+    })
 
 
 def new_patient_view(request):
