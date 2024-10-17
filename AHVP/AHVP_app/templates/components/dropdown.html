@@ -1,7 +1,7 @@
 <div class="dropdown">
     <label for="{{ id }}">{{ label }}</label>
     <select id="{{ id }}" name="{{ name }}" required>
-        <option value="" disabled selected>Seçiniz...</option>
+        <option value="" disabled selected >Seçiniz...</option>
         {% for option in options %}
             <option value="{{ option.0 }}">{{ option.1 }}</option>
         {% endfor %}

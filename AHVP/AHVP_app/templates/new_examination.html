@@ -11,7 +11,7 @@
             {% csrf_token %}
 
             <!-- Dropdown for selecting patient -->
-            {% include 'components/dropdown.html' with id='hasta' label='Hasta Seçin' name='hasta' options=hasta_options %}
+            {% include 'components/dropdown.html' with id='hasta' label='Hasta Adı Soyadı' name='hasta' options=hasta_options %}
 
             <!-- Date input for the visit date -->
             {% include 'components/dateinput.html' with id='visit-date' label='Muayene Tarihi' name='visit_date' %}
@@ -19,223 +19,94 @@
             <!-- Patolojik Bulgular Section -->
             <div class="form-section">
                 <h3>Patolojik Bulgular</h3>
-                <div>
-                    <label for="denge_bozuklugu">Denge Bozukluğu Var mı?</label>
-                    <input type="checkbox" id="denge_bozuklugu" name="denge_bozuklugu">
-                </div>
-                <div>
-                    <label for="serebellar_bulgular">Serebellar Bulgular Var mı?</label>
-                    <input type="checkbox" id="serebellar_bulgular" name="serebellar_bulgular">
-                </div>
-                <div>
-                    <label for="ense_sertligi">Ense Sertliği Var mı?</label>
-                    <input type="checkbox" id="ense_sertligi" name="ense_sertligi">
-                </div>
-                <div>
-                    <label for="parkinsonizm">Parkinsonizm Var mı?</label>
-                    <input type="checkbox" id="parkinsonizm" name="parkinsonizm">
-                </div>
-                <div>
-                    <label for="kranial_sinir_bulgulari">Kranial Sinir Bulguları Var mı?</label>
-                    <input type="checkbox" id="kranial_sinir_bulgulari" name="kranial_sinir_bulgulari">
-                </div>
-                <div>
-                    <label for="motor_duygusal_bulgular">Motor ve Duygusal Bulgular Var mı?</label>
-                    <input type="checkbox" id="motor_duygusal_bulgular" name="motor_duygusal_bulgular">
-                </div>
-                <div>
-                    <label for="patolojik_refleks">Patolojik Refleks Var mı?</label>
-                    <input type="checkbox" id="patolojik_refleks" name="patolojik_refleks">
-                </div>
+                {% include 'components/checkbox.html' with id='denge_bozuklugu' label='Denge bozukluğu var mı?' name='denge_bozuklugu' %}
+                {% include 'components/checkbox.html' with id='serebellar_bulgular' label='Serebellar bulgular var mı?' name='serebellar_bulgular' %}
+                {% include 'components/checkbox.html' with id='ense_sertligi' label='Ense sertliği var mı?' name='ense_sertligi' %}
+                {% include 'components/checkbox.html' with id='parkinsonizm' label='Parkinsonizm var mı?' name='parkinsonizm' %}
+                {% include 'components/checkbox.html' with id='kranial_sinir_bulgulari' label='Kranial sinir bulguları var mı?' name='kranial_sinir_bulgulari' %}
+                {% include 'components/checkbox.html' with id='motor_duygusal_bulgular' label='Motor ve duygusal bulgular var mı?' name='motor_duygusal_bulgular' %}
+                {% include 'components/checkbox.html' with id='patolojik_refleks' label='Patolojik refleks var mı?' name='patolojik_refleks' %}
             </div>
-
+            
             <!-- Bilissel Test Sonuclari -->
             <div class="form-section">
                 <h3>Bilissel Test Sonuclari</h3>
-                <div>
-                    <label for="mmse">Mini-Mental State Examination (MMSE)</label>
-                    <input type="number" id="mmse" name="mmse">
-                </div>
-                <div>
-                    <label for="moca">Montreal Cognitive Assessment (MoCA)</label>
-                    <input type="number" id="moca" name="moca">
-                </div>
-                <div>
-                    <label for="acer">Addenbrooke's Cognitive Examination Revised (ACE-R)</label>
-                    <input type="number" id="acer" name="acer">
-                </div>
+                {% include 'components/numberinput.html' with id='mmse' label='Mini-Mental State Examination (MMSE)' name='mmse' style_class='form-control' placeholder='MMSE skorunu giriniz' %}
+                {% include 'components/numberinput.html' with id='moca' label='Montreal Cognitive Assessment (MoCA)' name='moca' style_class='form-control' placeholder='MoCA skorunu giriniz' %}
+                {% include 'components/numberinput.html' with id='acer' label="Addenbrooke's Cognitive Examination Revised (ACE-R)" name='acer' style_class='form-control' placeholder='ACE-R skorunu giriniz' %}
             </div>
 
             <!-- Kan Tahlili Sonuclari -->
             <div class="form-section">
                 <h3>Kan Tahlili Sonuclari</h3>
-                <div>
-                    <label for="bt">BT</label>
-                    <input type="number" id="bt" name="bt">
-                </div>
-                <div>
-                    <label for="tam-kan-hb">Tam Kan-Hb</label>
-                    <input type="number" id="tam-kan-hb" name="tam_kan_hb">
-                </div>
-                <div>
-                    <label for="tam-kan-lym">Tam Kan-LYM</label>
-                    <input type="number" id="tam-kan-lym" name="tam_kan_lym">
-                </div>
-                <div>
-                    <label for="tam-kan-neu">Tam Kan-NEU</label>
-                    <input type="number" id="tam-kan-neu" name="tam_kan_neu">
-                </div>
-                <div>
-                    <label for="tam-kan-plt">Tam Kan-PLT</label>
-                    <input type="number" id="tam-kan-plt" name="tam_kan_plt">
-                </div>
-                <div>
-                    <label for="vitamin-b12">Vitamin B12 Seviyesi</label>
-                    <input type="number" id="vitamin-b12" name="vitamin_b12">
-                </div>
-                <div>
-                    <label for="ast">Aspartat Aminotransferaz (AST) Değeri</label>
-                    <input type="number" id="ast" name="ast">
-                </div>
-                <div>
-                    <label for="alt">Alanin Aminotransferaz (ALT) Değeri</label>
-                    <input type="number" id="alt" name="alt">
-                </div>
-                <div>
-                    <label for="ldh">Laktat Dehidrogenaz (LDH) Değeri</label>
-                    <input type="number" id="ldh" name="ldh">
-                </div>
-                <div>
-                    <label for="bun">Kan Üre Azotu (BUN) Değeri</label>
-                    <input type="number" id="bun" name="bun">
-                </div>
-                <div>
-                    <label for="kreatinin">Kreatinin Değeri</label>
-                    <input type="number" id="kreatinin" name="kreatinin">
-                </div>
-                <div>
-                    <label for="uric-acid">Ürik Asit Değeri</label>
-                    <input type="number" id="uric-acid" name="uric_acid">
-                </div>
-                <div>
-                    <label for="eritrosit">Eritrosit Değeri</label>
-                    <input type="number" id="eritrosit" name="eritrosit">
-                </div>
-                <div>
-                    <label for="sedim">Sedimantasyon Hızı (ESR)</label>
-                    <input type="number" id="sedim" name="sedim">
-                </div>
-                <div>
-                    <label for="vldrl">Sifilis Serolojisi (VDRL)</label>
-                    <input type="text" id="vldrl" name="vldrl">
-                </div>
+                {% include 'components/numberinput.html' with id='bt' label='BT' name='bt' style_class='form-control' placeholder='BT değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='tam-kan-hb' label='Tam Kan-Hb' name='tam_kan_hb' style_class='form-control' placeholder='Tam Kan-Hb değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='tam-kan-lym' label='Tam Kan-LYM' name='tam_kan_lym' style_class='form-control' placeholder='Tam Kan-LYM değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='tam-kan-neu' label='Tam Kan-NEU' name='tam_kan_neu' style_class='form-control' placeholder='Tam Kan-NEU değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='tam-kan-plt' label='Tam Kan-PLT' name='tam_kan_plt' style_class='form-control' placeholder='Tam Kan-PLT değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='vitamin-b12' label='Vitamin B12 Seviyesi' name='vitamin_b12' style_class='form-control' placeholder='Vitamin B12 seviyesini giriniz' %}
+                {% include 'components/numberinput.html' with id='ast' label='Aspartat Aminotransferaz (AST) Değeri' name='ast' style_class='form-control' placeholder='AST değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='alt' label='Alanin Aminotransferaz (ALT) Değeri' name='alt' style_class='form-control' placeholder='ALT değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='ldh' label='Laktat Dehidrogenaz (LDH) Değeri' name='ldh' style_class='form-control' placeholder='LDH değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='bun' label='Kan Üre Azotu (BUN) Değeri' name='bun' style_class='form-control' placeholder='BUN değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='kreatinin' label='Kreatinin Değeri' name='kreatinin' style_class='form-control' placeholder='Kreatinin değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='uric-acid' label='Ürik Asit Değeri' name='uric_acid' style_class='form-control' placeholder='Ürik asit değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='eritrosit' label='Eritrosit Değeri' name='eritrosit' style_class='form-control' placeholder='Eritrosit değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='sedim' label='Sedimantasyon Hızı (ESR)' name='sedim' style_class='form-control' placeholder='Sedimantasyon hızını giriniz' %}
+                {% include 'components/textfield.html' with id='vldrl' label='Sifilis Serolojisi (VDRL)' name='vldrl' value='' placeholder='VDRL sonucunu giriniz' style_class='form-control' %}
             </div>
 
             <!-- BT Section -->
             <div class="form-section">
-                <h3>Serebral Bilgisayarlı Tomografi (BT)</h3>
-                <div>
-                    <label for="bt">BT Sonucu</label>
-                    <textarea id="bt" name="bt"></textarea>
-                </div>
+                <h3>Serebral Bilgisayarlı Tomografi (BT) Sonucu</h3>
+                {% include 'components/textarea.html' with id='bt' name='bt' value='' placeholder='BT sonucunu giriniz' style_class='form-control' %}
             </div>
 
             <!-- MRI Section -->
             <div class="form-section">
                 <h3>MRI</h3>
-                <div>
-                    <label for="mri-notes">MRI Notları</label>
-                    <textarea id="mri-notes" name="mri_notes"></textarea>
-                </div>
-                <div>
-                    <label for="mri-tarihi">MRI Tarihi</label>
-                    <input type="date" id="mri-tarihi" name="mri_tarihi">
-                </div>
-                <div>
-                    <label for="mri-freesurfer">MRI Freesurfer Sonuçları Yükleyiniz</label>
-                    <input type="file" id="mri-freesurfer" name="mri_freesurfer">
-                </div>
+                {% include 'components/textarea.html' with id='mri-notes' name='mri_notes' style_class='form-control' placeholder='MRI notlarını giriniz' %}
+                {% include 'components/dateinput.html' with id='mri-tarihi' label='MRI Tarihi' name='mri_tarihi' style_class='form-control' %}
+                {% include 'components/fileinput.html' with id='mri-freesurfer' name='mri_freesurfer' label='MRI Freesurfer Sonuçları' style_class='form-control' %}
             </div>
 
             <!-- PET Section -->
             <div class="form-section">
                 <h3>PET</h3>
-                <div>
-                    <label for="pet1">PET-1</label>
-                    <input type="number" id="pet1" name="pet1">
-                </div>
-                <div>
-                    <label for="pet2">PET-2</label>
-                    <input type="number" id="pet2" name="pet2">
-                </div>
-                <div>
-                    <label for="pet3">PET-3</label>
-                    <input type="number" id="pet3" name="pet3">
-                </div>
-                <div>
-                    <label for="pet4">PET-4</label>
-                    <input type="number" id="pet4" name="pet4">
-                </div>
-                <div>
-                    <label for="pet5">PET-5</label>
-                    <input type="number" id="pet5" name="pet5">
-                </div>
-                <div>
-                    <label for="pet6">PET-6</label>
-                    <input type="number" id="pet6" name="pet6">
-                </div>
-                <div>
-                    <label for="pet7">PET-7</label>
-                    <input type="number" id="pet7" name="pet7">
-                </div>
-                <div>
-                    <label for="pet8">PET-8</label>
-                    <input type="number" id="pet8" name="pet8">
-                </div>
-                <div>
-                    <label for="pet9">PET-9</label>
-                    <input type="number" id="pet9" name="pet9">
-                </div>
-                <div>
-                    <label for="pet10">PET-10</label>
-                    <input type="number" id="pet10" name="pet10">
-                </div>
+                {% include 'components/numberinput.html' with id='pet1' label='PET-1' name='pet1' style_class='form-control' placeholder='PET-1 değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='pet2' label='PET-2' name='pet2' style_class='form-control' placeholder='PET-2 değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='pet3' label='PET-3' name='pet3' style_class='form-control' placeholder='PET-3 değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='pet4' label='PET-4' name='pet4' style_class='form-control' placeholder='PET-4 değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='pet5' label='PET-5' name='pet5' style_class='form-control' placeholder='PET-5 değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='pet6' label='PET-6' name='pet6' style_class='form-control' placeholder='PET-6 değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='pet7' label='PET-7' name='pet7' style_class='form-control' placeholder='PET-7 değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='pet8' label='PET-8' name='pet8' style_class='form-control' placeholder='PET-8 değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='pet9' label='PET-9' name='pet9' style_class='form-control' placeholder='PET-9 değerini giriniz' %}
+                {% include 'components/numberinput.html' with id='pet10' label='PET-10' name='pet10' style_class='form-control' placeholder='PET-10 değerini giriniz' %}                
             </div>
 
             <!-- PA Akciger Section -->
             <div class="form-section">
                 <h3>Posterior Anterior (PA) Akciğer Grafisi</h3>
-                <div>
-                    <label for="pa-akciger">PA Akciğer Grafisi</label>
-                    <textarea id="pa-akciger" name="pa_akciger"></textarea>
-                </div>
+                {% include 'components/textarea.html' with id='pa-akciger' name='pa_akciger' value='' placeholder='PA Akciğer Grafisi Sonucunu giriniz' style_class='form-control' %}
             </div>
 
             <!-- EKG Section -->
             <div class="form-section">
                 <h3>Elektrokardiyogram (EKG)</h3>
-                <div>
-                    <label for="ekg">EKG Sonucu</label>
-                    <textarea id="ekg" name="ekg"></textarea>
-                </div>
+                {% include 'components/textarea.html' with id='ekg' name='ekg' value='' placeholder='EKG sonucunu giriniz' style_class='form-control' %}
             </div>
 
             <!-- EEG Section -->
             <div class="form-section">
                 <h3>Elektroansefalografi (EEG)</h3>
-                <div>
-                    <label for="eeg">EEG Sonucu</label>
-                    <textarea id="eeg" name="eeg"></textarea>
-                </div>
+                {% include 'components/textarea.html' with id='eeg' name='eeg' value='' placeholder='EEG sonucunu giriniz' style_class='form-control' %}
             </div>
 
             <!-- Ek Testler Section -->
             <div class="form-section">
                 <h3>Ek Testler</h3>
-                <div>
-                    <label for="ek-testler">Ek Testler</label>
-                    <textarea id="ek-testler" name="ek_testler"></textarea>
-                </div>
+                {% include 'components/textarea.html' with id='ek-testler' name='ek_testler' value='' placeholder='Ek testleri giriniz' style_class='form-control' %}
             </div>
 
 
@@ -243,37 +114,4 @@
             <button type="submit" class="btn-submit">Kaydet</button>
         </form>
     </div>
-
-    <!-- CSS for Section Styling -->
-    <style>
-        .form-section {
-            border: 2px solid #ccc;
-            padding: 20px;
-            margin-bottom: 20px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-        }
-
-        .form-section h3 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .form-section div {
-            margin-bottom: 10px;
-        }
-
-        .btn-submit {
-            background-color: #008CBA;
-            color: white;
-            padding: 12px;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .btn-submit:hover {
-            background-color: #007bb5;
-        }
-    </style>
 {% endblock %}

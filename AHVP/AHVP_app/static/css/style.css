@@ -9,7 +9,7 @@ body, html {
 
 .dashboard-container {
     display: flex;
-    height: 100vh;
+    height: 100%;
 }
 
 /* Header */
@@ -157,9 +157,13 @@ body, html {
     border: 1px solid #ced4da;
     border-radius: 5px;
     background-color: #ffffff;
-    color: #495057;
+    color: #aaa;
     font-size: 16px;
     transition: border-color 0.3s ease;
+}
+
+.dropdown select:valid {
+    color: black; /* Dark color when a valid option is selected */
 }
 
 /* Hover and Focus Effects */
@@ -173,11 +177,15 @@ body, html {
 .dropdown option {
     padding: 10px;
     background-color: #ffffff;
-    color: #495057;
+    color: black;
 }
 
 .dropdown option:hover {
     background-color: #e9ecef;
+}
+
+.dropdown select option:disabled {
+    display: none; /* Hide the disabled option from the dropdown view */
 }
 
 .date-input {
@@ -228,6 +236,10 @@ body, html {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
 }
 
+.textfield input::placeholder {
+    color: #aaa; /* Light gray placeholder color */
+}
+
 /* General styling for form group */
 .form-group {
     margin-bottom: 15px;
@@ -242,19 +254,77 @@ body, html {
 }
 
 /* Input field styling */
-.form-group input.form-control {
+.form-group input.form-control,
+.form-group textarea.form-control {
     width: 100%;
     padding: 10px;
     font-size: 16px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 5px;
     box-sizing: border-box;
     transition: border-color 0.3s ease;
 }
 
 /* Input field focus state */
-.form-group input.form-control:focus {
+.form-group input.form-control:focus,
+.form-group textarea.form-control:focus {
     border-color: #007bff;  /* Change border color to blue on focus */
     outline: none;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.form-group textarea.form-control {
+    resize: vertical;           /* Allow vertical resizing only */
+}
+
+.form-group input.form-control::placeholder,
+.form-group textarea.form-control::placeholder {
+    color: #aaa;                /* Light gray placeholder text */
+    font-family:arial;
+    font-size: 16px;
+}
+
+/* Style the form section */
+.form-section {
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    background-color: #ffffff;
+}
+
+/* Style the labels for checkboxes */
+.form-section label {
+    font-size: 16px;
+    margin-left: 8px;
+    color: #333;
+    width: 450px;
+}
+
+/* Align checkboxes and labels horizontally */
+.form-section div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.form-section h3 {
+    margin-bottom: 15px;
+    margin-top: 0px;
+    font-size: 18px; /* Adjust font size */
+    font-weight: bold; /* Make it bold */
+    color: #333; /* Change text color */
+}
+
+/* Customize the appearance of the checkbox */
+input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #007bff; /* This is the color of the checkbox when checked */
+}
+
+/* Hover effect on the checkbox */
+input[type="checkbox"]:hover {
+    border-color: #007bff;
 }
