@@ -1,0 +1,671 @@
+{% extends 'base.html' %}
+
+{% block title %}Tüm FreeSurfer Sonuçları{% endblock %}
+
+{% block content %}
+    <div class="dashboard-content">
+        <h2>Tüm FreeSurfer Sonuçları</h2>
+
+        <form method="GET" action=".">
+            <label for="tani">Tanıya Göre Filtrele:</label>
+            <select name="tani" id="tani">
+                <option value="">Tüm Tanılar</option>
+                {% for tani in tanilar %}
+                    <option value="{{ tani }}" {% if tani == selected_tani %} selected {% endif %}>{{ tani }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Filtrele</button>
+        </form>
+
+        <form method="GET" action="{% url 'export_excel' %}">
+            <input type="hidden" name="tani" value="{{ selected_tani }}">
+            <button type="submit" class="btn-download">Tabloyu İndir</button>
+        </form>
+
+        {% if freesurfer_sonuclari %}
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Muayene ID</th>
+                        <th>Hasta Adı</th>
+                        <th>Diagnosis (Tanı)</th>
+                        <th>LH Cortex Volume</th>
+                        <th>RH Cortex Volume</th>
+                        <th>Brain Segmentation Volume</th>
+                        <th>Brain Seg Vol Not Vent</th>
+                        <th>Ventricle Choroid Volume</th>
+                        <th>Cortex Volume</th>
+                        <th>Left Hemisphere Cerebral White Matter Volume</th>
+                        <th>Right Hemisphere Cerebral White Matter Volume</th>
+                        <th>Cerebral White Matter Volume</th>
+                        <th>Subcortical Gray Matter Volume</th>
+                        <th>Total Gray Matter Volume</th>
+                        <th>Supra Tentorial Volume</th>
+                        <th>Supra Tentorial Volume (No Ventricle)</th>
+                        <th>Mask Volume</th>
+                        <th>Brain Segmentation Volume to eTIV</th>
+                        <th>Mask Volume to eTIV</th>
+                        <th>Left Hemisphere Surface Holes</th>
+                        <th>Right Hemisphere Surface Holes</th>
+                        <th>Surface Holes</th>
+                        <th>Estimated Total Intracranial Volume (eTIV)</th>
+                        <th>Left Lateral Ventricle Volume (mm3)</th>
+                        <th>Left Lateral Ventricle Norm Mean</th>
+                        <th>Left Lateral Ventricle Norm Std Dev</th>
+                        <th>Left Lateral Ventricle Norm Min</th>
+                        <th>Left Lateral Ventricle Norm Max</th>
+                        <th>Left Lateral Ventricle Norm Range</th>
+                        <th>Left Inferior Lateral Ventricle Volume (mm3)</th>
+                        <th>Left Inferior Lateral Ventricle Norm Mean</th>
+                        <th>Left Inferior Lateral Ventricle Norm Std Dev</th>
+                        <th>Left Inferior Lateral Ventricle Norm Min</th>
+                        <th>Left Inferior Lateral Ventricle Norm Max</th>
+                        <th>Left Inferior Lateral Ventricle Norm Range</th>
+                        <th>Left Cerebellum White Matter Volume (mm3)</th>
+                        <th>Left Cerebellum White Matter Norm Mean</th>
+                        <th>Left Cerebellum White Matter Norm Std Dev</th>
+                        <th>Left Cerebellum White Matter Norm Min</th>
+                        <th>Left Cerebellum White Matter Norm Max</th>
+                        <th>Left Cerebellum White Matter Norm Range</th>
+                        <th>Left Cerebellum Cortex Volume (mm3)</th>
+                        <th>Left Cerebellum Cortex Norm Mean</th>
+                        <th>Left Cerebellum Cortex Norm Std Dev</th>
+                        <th>Left Cerebellum Cortex Norm Min</th>
+                        <th>Left Cerebellum Cortex Norm Max</th>
+                        <th>Left Cerebellum Cortex Norm Range</th>
+                        <th>Left Thalamus Volume (mm3)</th>
+                        <th>Left Thalamus Norm Mean</th>
+                        <th>Left Thalamus Norm Std Dev</th>
+                        <th>Left Thalamus Norm Min</th>
+                        <th>Left Thalamus Norm Max</th>
+                        <th>Left Thalamus Norm Range</th>
+                        <th>Left Caudate Volume (mm3)</th>
+                        <th>Left Caudate Norm Mean</th>
+                        <th>Left Caudate Norm Std Dev</th>
+                        <th>Left Caudate Norm Min</th>
+                        <th>Left Caudate Norm Max</th>
+                        <th>Left Caudate Norm Range</th>
+                        <th>Left Putamen Volume (mm3)</th>
+                        <th>Left Putamen Norm Mean</th>
+                        <th>Left Putamen Norm Std Dev</th>
+                        <th>Left Putamen Norm Min</th>
+                        <th>Left Putamen Norm Max</th>
+                        <th>Left Putamen Norm Range</th>
+                        <th>Left Pallidum Volume (mm3)</th>
+                        <th>Left Pallidum Norm Mean</th>
+                        <th>Left Pallidum Norm Std Dev</th>
+                        <th>Left Pallidum Norm Min</th>
+                        <th>Left Pallidum Norm Max</th>
+                        <th>Left Pallidum Norm Range</th>
+                        <th>3rd Ventricle Volume (mm3)</th>
+                        <th>3rd Ventricle Norm Mean</th>
+                        <th>3rd Ventricle Norm Std Dev</th>
+                        <th>3rd Ventricle Norm Min</th>
+                        <th>3rd Ventricle Norm Max</th>
+                        <th>3rd Ventricle Norm Range</th>
+                        <th>4th Ventricle Volume (mm3)</th>
+                        <th>4th Ventricle Norm Mean</th>
+                        <th>4th Ventricle Norm Std Dev</th>
+                        <th>4th Ventricle Norm Min</th>
+                        <th>4th Ventricle Norm Max</th>
+                        <th>4th Ventricle Norm Range</th>
+                        <th>Brain Stem Volume (mm3)</th>
+                        <th>Brain Stem Norm Mean</th>
+                        <th>Brain Stem Norm Std Dev</th>
+                        <th>Brain Stem Norm Min</th>
+                        <th>Brain Stem Norm Max</th>
+                        <th>Brain Stem Norm Range</th>
+                        <th>Left Hippocampus Volume (mm3)</th>
+                        <th>Left Hippocampus Norm Mean</th>
+                        <th>Left Hippocampus Norm Std Dev</th>
+                        <th>Left Hippocampus Norm Min</th>
+                        <th>Left Hippocampus Norm Max</th>
+                        <th>Left Hippocampus Norm Range</th>
+                        <th>Left Amygdala Volume (mm3)</th>
+                        <th>Left Amygdala Norm Mean</th>
+                        <th>Left Amygdala Norm Std Dev</th>
+                        <th>Left Amygdala Norm Min</th>
+                        <th>Left Amygdala Norm Max</th>
+                        <th>Left Amygdala Norm Range</th>
+                        <th>CSF Volume (mm3)</th>
+                        <th>CSF Norm Mean</th>
+                        <th>CSF Norm Std Dev</th>
+                        <th>CSF Norm Min</th>
+                        <th>CSF Norm Max</th>
+                        <th>CSF Norm Range</th>
+                        <th>Left Accumbens Area Volume (mm3)</th>
+                        <th>Left Accumbens Area Norm Mean</th>
+                        <th>Left Accumbens Area Norm Std Dev</th>
+                        <th>Left Accumbens Area Norm Min</th>
+                        <th>Left Accumbens Area Norm Max</th>
+                        <th>Left Accumbens Area Norm Range</th>
+                        <th>Left Ventral DC Volume (mm3)</th>
+                        <th>Left Ventral DC Norm Mean</th>
+                        <th>Left Ventral DC Norm Std Dev</th>
+                        <th>Left Ventral DC Norm Min</th>
+                        <th>Left Ventral DC Norm Max</th>
+                        <th>Left Ventral DC Norm Range</th>
+                        <th>Left Vessel Volume (mm3)</th>
+                        <th>Left Vessel Norm Mean</th>
+                        <th>Left Vessel Norm Std Dev</th>
+                        <th>Left Vessel Norm Min</th>
+                        <th>Left Vessel Norm Max</th>
+                        <th>Left Vessel Norm Range</th>
+                        <th>Left Choroid Plexus Volume (mm3)</th>
+                        <th>Left Choroid Plexus Norm Mean</th>
+                        <th>Left Choroid Plexus Norm Std Dev</th>
+                        <th>Left Choroid Plexus Norm Min</th>
+                        <th>Left Choroid Plexus Norm Max</th>
+                        <th>Left Choroid Plexus Norm Range</th>
+                        <th>Right Lateral Ventricle Volume (mm3)</th>
+                        <th>Right Lateral Ventricle Norm Mean</th>
+                        <th>Right Lateral Ventricle Norm Std Dev</th>
+                        <th>Right Lateral Ventricle Norm Min</th>
+                        <th>Right Lateral Ventricle Norm Max</th>
+                        <th>Right Lateral Ventricle Norm Range</th>
+                        <th>Right Inferior Lateral Ventricle Volume (mm3)</th>
+                        <th>Right Inferior Lateral Ventricle Norm Mean</th>
+                        <th>Right Inferior Lateral Ventricle Norm Std Dev</th>
+                        <th>Right Inferior Lateral Ventricle Norm Min</th>
+                        <th>Right Inferior Lateral Ventricle Norm Max</th>
+                        <th>Right Inferior Lateral Ventricle Norm Range</th>
+                        <th>Right Cerebellum White Matter Volume (mm3)</th>
+                        <th>Right Cerebellum White Matter Norm Mean</th>
+                        <th>Right Cerebellum White Matter Norm Std Dev</th>
+                        <th>Right Cerebellum White Matter Norm Min</th>
+                        <th>Right Cerebellum White Matter Norm Max</th>
+                        <th>Right Cerebellum White Matter Norm Range</th>
+                        <th>Right Cerebellum Cortex Volume (mm3)</th>
+                        <th>Right Cerebellum Cortex Norm Mean</th>
+                        <th>Right Cerebellum Cortex Norm Std Dev</th>
+                        <th>Right Cerebellum Cortex Norm Min</th>
+                        <th>Right Cerebellum Cortex Norm Max</th>
+                        <th>Right Cerebellum Cortex Norm Range</th>
+                        <th>Right Thalamus Volume (mm3)</th>
+                        <th>Right Thalamus Norm Mean</th>
+                        <th>Right Thalamus Norm Std Dev</th>
+                        <th>Right Thalamus Norm Min</th>
+                        <th>Right Thalamus Norm Max</th>
+                        <th>Right Thalamus Norm Range</th>
+                        <th>Right Caudate Volume (mm3)</th>
+                        <th>Right Caudate Norm Mean</th>
+                        <th>Right Caudate Norm Std Dev</th>
+                        <th>Right Caudate Norm Min</th>
+                        <th>Right Caudate Norm Max</th>
+                        <th>Right Caudate Norm Range</th>
+                        <th>Right Putamen Volume (mm3)</th>
+                        <th>Right Putamen Norm Mean</th>
+                        <th>Right Putamen Norm Std Dev</th>
+                        <th>Right Putamen Norm Min</th>
+                        <th>Right Putamen Norm Max</th>
+                        <th>Right Putamen Norm Range</th>
+                        <th>Right Pallidum Volume (mm3)</th>
+                        <th>Right Pallidum Norm Mean</th>
+                        <th>Right Pallidum Norm Std Dev</th>
+                        <th>Right Pallidum Norm Min</th>
+                        <th>Right Pallidum Norm Max</th>
+                        <th>Right Pallidum Norm Range</th>
+                        <th>Right Hippocampus Volume (mm3)</th>
+                        <th>Right Hippocampus Norm Mean</th>
+                        <th>Right Hippocampus Norm Std Dev</th>
+                        <th>Right Hippocampus Norm Min</th>
+                        <th>Right Hippocampus Norm Max</th>
+                        <th>Right Hippocampus Norm Range</th>
+                        <th>Right Amygdala Volume (mm3)</th>
+                        <th>Right Amygdala Norm Mean</th>
+                        <th>Right Amygdala Norm Std Dev</th>
+                        <th>Right Amygdala Norm Min</th>
+                        <th>Right Amygdala Norm Max</th>
+                        <th>Right Amygdala Norm Range</th>
+                        <th>Right Accumbens Area Volume (mm3)</th>
+                        <th>Right Accumbens Area Norm Mean</th>
+                        <th>Right Accumbens Area Norm Std Dev</th>
+                        <th>Right Accumbens Area Norm Min</th>
+                        <th>Right Accumbens Area Norm Max</th>
+                        <th>Right Accumbens Area Norm Range</th>
+                        <th>Right Ventral DC Volume (mm3)</th>
+                        <th>Right Ventral DC Norm Mean</th>
+                        <th>Right Ventral DC Norm Std Dev</th>
+                        <th>Right Ventral DC Norm Min</th>
+                        <th>Right Ventral DC Norm Max</th>
+                        <th>Right Ventral DC Norm Range</th>
+                        <th>Right Vessel Volume (mm3)</th>
+                        <th>Right Vessel Norm Mean</th>
+                        <th>Right Vessel Norm Std Dev</th>
+                        <th>Right Vessel Norm Min</th>
+                        <th>Right Vessel Norm Max</th>
+                        <th>Right Vessel Norm Range</th>
+                        <th>Right Choroid Plexus Volume (mm3)</th>
+                        <th>Right Choroid Plexus Norm Mean</th>
+                        <th>Right Choroid Plexus Norm Std Dev</th>
+                        <th>Right Choroid Plexus Norm Min</th>
+                        <th>Right Choroid Plexus Norm Max</th>
+                        <th>Right Choroid Plexus Norm Range</th>
+                        <th>5th Ventricle Volume (mm3)</th>
+                        <th>5th Ventricle Norm Mean</th>
+                        <th>5th Ventricle Norm Std Dev</th>
+                        <th>5th Ventricle Norm Min</th>
+                        <th>5th Ventricle Norm Max</th>
+                        <th>5th Ventricle Norm Range</th>
+                        <th>WM Hypointensities Volume (mm3)</th>
+                        <th>WM Hypointensities Norm Mean</th>
+                        <th>WM Hypointensities Norm Std Dev</th>
+                        <th>WM Hypointensities Norm Min</th>
+                        <th>WM Hypointensities Norm Max</th>
+                        <th>WM Hypointensities Norm Range</th>
+                        <th>Left WM Hypointensities Volume (mm3)</th>
+                        <th>Left WM Hypointensities Norm Mean</th>
+                        <th>Left WM Hypointensities Norm Std Dev</th>
+                        <th>Left WM Hypointensities Norm Min</th>
+                        <th>Left WM Hypointensities Norm Max</th>
+                        <th>Left WM Hypointensities Norm Range</th>
+                        <th>Right WM Hypointensities Volume (mm3)</th>
+                        <th>Right WM Hypointensities Norm Mean</th>
+                        <th>Right WM Hypointensities Norm Std Dev</th>
+                        <th>Right WM Hypointensities Norm Min</th>
+                        <th>Right WM Hypointensities Norm Max</th>
+                        <th>Right WM Hypointensities Norm Range</th>
+                        <th>Non-WM Hypointensities Volume (mm3)</th>
+                        <th>Non-WM Hypointensities Norm Mean</th>
+                        <th>Non-WM Hypointensities Norm Std Dev</th>
+                        <th>Non-WM Hypointensities Norm Min</th>
+                        <th>Non-WM Hypointensities Norm Max</th>
+                        <th>Non-WM Hypointensities Norm Range</th>
+                        <th>Left Non-WM Hypointensities Volume (mm3)</th>
+                        <th>Left Non-WM Hypointensities Norm Mean</th>
+                        <th>Left Non-WM Hypointensities Norm Std Dev</th>
+                        <th>Left Non-WM Hypointensities Norm Min</th>
+                        <th>Left Non-WM Hypointensities Norm Max</th>
+                        <th>Left Non-WM Hypointensities Norm Range</th>
+                        <th>Right Non-WM Hypointensities Volume (mm3)</th>
+                        <th>Right Non-WM Hypointensities Norm Mean</th>
+                        <th>Right Non-WM Hypointensities Norm Std Dev</th>
+                        <th>Right Non-WM Hypointensities Norm Min</th>
+                        <th>Right Non-WM Hypointensities Norm Max</th>
+                        <th>Right Non-WM Hypointensities Norm Range</th>
+                        <th>Optic Chiasm Volume (mm3)</th>
+                        <th>Optic Chiasm Norm Mean</th>
+                        <th>Optic Chiasm Norm Std Dev</th>
+                        <th>Optic Chiasm Norm Min</th>
+                        <th>Optic Chiasm Norm Max</th>
+                        <th>Optic Chiasm Norm Range</th>
+                        <th>CC Posterior Volume (mm3)</th>
+                        <th>CC Posterior Norm Mean</th>
+                        <th>CC Posterior Norm Std Dev</th>
+                        <th>CC Posterior Norm Min</th>
+                        <th>CC Posterior Norm Max</th>
+                        <th>CC Posterior Norm Range</th>
+                        <th>CC Mid Posterior Volume (mm3)</th>
+                        <th>CC Mid Posterior Norm Mean</th>
+                        <th>CC Mid Posterior Norm Std Dev</th>
+                        <th>CC Mid Posterior Norm Min</th>
+                        <th>CC Mid Posterior Norm Max</th>
+                        <th>CC Mid Posterior Norm Range</th>
+                        <th>CC Central Volume (mm3)</th>
+                        <th>CC Central Norm Mean</th>
+                        <th>CC Central Norm Std Dev</th>
+                        <th>CC Central Norm Min</th>
+                        <th>CC Central Norm Max</th>
+                        <th>CC Central Norm Range</th>
+                        <th>CC Mid Anterior Volume (mm3)</th>
+                        <th>CC Mid Anterior Norm Mean</th>
+                        <th>CC Mid Anterior Norm Std Dev</th>
+                        <th>CC Mid Anterior Norm Min</th>
+                        <th>CC Mid Anterior Norm Max</th>
+                        <th>CC Mid Anterior Norm Range</th>
+                        <th>CC Anterior Volume (mm3)</th>
+                        <th>CC Anterior Norm Mean</th>
+                        <th>CC Anterior Norm Std Dev</th>
+                        <th>CC Anterior Norm Min</th>
+                        <th>CC Anterior Norm Max</th>
+                        <th>CC Anterior Norm Range</th>
+
+                        <!-- Diğer sütunları buraya ekleyebilirsiniz -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sonuc in freesurfer_sonuclari %}
+                        <tr>
+                            <td>{{ sonuc.muayene.id }}</td>
+                            <td>{{ sonuc.muayene.hasta.isim }} {{ sonuc.muayene.hasta.soyisim }}</td>
+                            <td>{{ sonuc.diagnosis }}</td>
+                            <td>{{ sonuc.lh_cortex_vol }}</td>
+                            <td>{{ sonuc.rh_cortex_vol }}</td>
+                            <td>{{ sonuc.brain_seg_vol }}</td>
+                            <td>{{ sonuc.brain_seg_vol_not_vent }}</td>
+                            <td>{{ sonuc.ventricle_choroid_vol }}</td>
+                            <td>{{ sonuc.cortex_vol }}</td>
+                            <td>{{ sonuc.lh_cerebral_white_matter_vol }}</td>
+                            <td>{{ sonuc.rh_cerebral_white_matter_vol }}</td>
+                            <td>{{ sonuc.cerebral_white_matter_vol }}</td>
+                            <td>{{ sonuc.subcort_gray_vol }}</td>
+                            <td>{{ sonuc.total_gray_vol }}</td>
+                            <td>{{ sonuc.supra_tentorial_vol }}</td>
+                            <td>{{ sonuc.supra_tentorial_vol_not_vent }}</td>
+                            <td>{{ sonuc.mask_vol }}</td>
+                            <td>{{ sonuc.brain_seg_vol_to_etiv }}</td>
+                            <td>{{ sonuc.mask_vol_to_etiv }}</td>
+                            <td>{{ sonuc.lh_surface_holes }}</td>
+                            <td>{{ sonuc.rh_surface_holes }}</td>
+                            <td>{{ sonuc.surface_holes }}</td>
+                            <td>{{ sonuc.etiv }}</td>
+                            <td>{{ sonuc.left_lateral_ventricle_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_lateral_ventricle_normmean }}</td>
+                            <td>{{ sonuc.left_lateral_ventricle_normstddev }}</td>
+                            <td>{{ sonuc.left_lateral_ventricle_normmin }}</td>
+                            <td>{{ sonuc.left_lateral_ventricle_normmax }}</td>
+                            <td>{{ sonuc.left_lateral_ventricle_normrange }}</td>
+                            <td>{{ sonuc.left_inf_lat_vent_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_inf_lat_vent_normmean }}</td>
+                            <td>{{ sonuc.left_inf_lat_vent_normstddev }}</td>
+                            <td>{{ sonuc.left_inf_lat_vent_normmin }}</td>
+                            <td>{{ sonuc.left_inf_lat_vent_normmax }}</td>
+                            <td>{{ sonuc.left_inf_lat_vent_normrange }}</td>
+                            <td>{{ sonuc.left_cerebellum_white_matter_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_cerebellum_white_matter_normmean }}</td>
+                            <td>{{ sonuc.left_cerebellum_white_matter_normstddev }}</td>
+                            <td>{{ sonuc.left_cerebellum_white_matter_normmin }}</td>
+                            <td>{{ sonuc.left_cerebellum_white_matter_normmax }}</td>
+                            <td>{{ sonuc.left_cerebellum_white_matter_normrange }}</td>
+                            <td>{{ sonuc.left_cerebellum_cortex_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_cerebellum_cortex_normmean }}</td>
+                            <td>{{ sonuc.left_cerebellum_cortex_normstddev }}</td>
+                            <td>{{ sonuc.left_cerebellum_cortex_normmin }}</td>
+                            <td>{{ sonuc.left_cerebellum_cortex_normmax }}</td>
+                            <td>{{ sonuc.left_cerebellum_cortex_normrange }}</td>
+                            <td>{{ sonuc.left_thalamus_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_thalamus_normmean }}</td>
+                            <td>{{ sonuc.left_thalamus_normstddev }}</td>
+                            <td>{{ sonuc.left_thalamus_normmin }}</td>
+                            <td>{{ sonuc.left_thalamus_normmax }}</td>
+                            <td>{{ sonuc.left_thalamus_normrange }}</td>
+                            <td>{{ sonuc.left_caudate_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_caudate_normmean }}</td>
+                            <td>{{ sonuc.left_caudate_normstddev }}</td>
+                            <td>{{ sonuc.left_caudate_normmin }}</td>
+                            <td>{{ sonuc.left_caudate_normmax }}</td>
+                            <td>{{ sonuc.left_caudate_normrange }}</td>
+                            <td>{{ sonuc.left_putamen_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_putamen_normmean }}</td>
+                            <td>{{ sonuc.left_putamen_normstddev }}</td>
+                            <td>{{ sonuc.left_putamen_normmin }}</td>
+                            <td>{{ sonuc.left_putamen_normmax }}</td>
+                            <td>{{ sonuc.left_putamen_normrange }}</td>
+                            <td>{{ sonuc.left_pallidum_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_pallidum_normmean }}</td>
+                            <td>{{ sonuc.left_pallidum_normstddev }}</td>
+                            <td>{{ sonuc.left_pallidum_normmin }}</td>
+                            <td>{{ sonuc.left_pallidum_normmax }}</td>
+                            <td>{{ sonuc.left_pallidum_normrange }}</td>
+                            <td>{{ sonuc.the3rd_ventricle_volume_mm3 }}</td>
+                            <td>{{ sonuc.the3rd_ventricle_normmean }}</td>
+                            <td>{{ sonuc.the3rd_ventricle_normstddev }}</td>
+                            <td>{{ sonuc.the3rd_ventricle_normmax }}</td>
+                            <td>{{ sonuc.the3rd_ventricle_normrange }}</td>
+                            <td>{{ sonuc.the3rd_ventricle_normmin }}</td>
+                            <td>{{ sonuc.the4th_ventricle_volume_mm3 }}</td>
+                            <td>{{ sonuc.the4th_ventricle_normmean }}</td>
+                            <td>{{ sonuc.the4th_ventricle_normstddev }}</td>
+                            <td>{{ sonuc.the4th_ventricle_normmin }}</td>
+                            <td>{{ sonuc.the4th_ventricle_normmax }}</td>
+                            <td>{{ sonuc.the4th_ventricle_normrange }}</td>
+                            <td>{{ sonuc.brain_stem_volume_mm3 }}</td>
+                            <td>{{ sonuc.brain_stem_normmean }}</td>
+                            <td>{{ sonuc.brain_stem_normstddev }}</td>
+                            <td>{{ sonuc.brain_stem_normmin }}</td>
+                            <td>{{ sonuc.brain_stem_normmax }}</td>
+                            <td>{{ sonuc.brain_stem_normrange }}</td>
+                            <td>{{ sonuc.left_hippocampus_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_hippocampus_normmean }}</td>
+                            <td>{{ sonuc.left_hippocampus_normstddev }}</td>
+                            <td>{{ sonuc.left_hippocampus_normmin }}</td>
+                            <td>{{ sonuc.left_hippocampus_normmax }}</td>
+                            <td>{{ sonuc.left_hippocampus_normrange }}</td>
+                            <td>{{ sonuc.left_amygdala_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_amygdala_normmean }}</td>
+                            <td>{{ sonuc.left_amygdala_normstddev }}</td>
+                            <td>{{ sonuc.left_amygdala_normmin }}</td>
+                            <td>{{ sonuc.left_amygdala_normmax }}</td>
+                            <td>{{ sonuc.left_amygdala_normrange }}</td>
+                            <td>{{ sonuc.csf_volume_mm3 }}</td>
+                            <td>{{ sonuc.csf_normmean }}</td>
+                            <td>{{ sonuc.csf_normstddev }}</td>
+                            <td>{{ sonuc.csf_normmin }}</td>
+                            <td>{{ sonuc.csf_normmax }}</td>
+                            <td>{{ sonuc.csf_normrange }}</td>
+                            <td>{{ sonuc.left_accumbens_area_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_accumbens_area_normmean }}</td>
+                            <td>{{ sonuc.left_accumbens_area_normstddev }}</td>
+                            <td>{{ sonuc.left_accumbens_area_normmin }}</td>
+                            <td>{{ sonuc.left_accumbens_area_normmax }}</td>
+                            <td>{{ sonuc.left_accumbens_area_normrange }}</td>
+                            <td>{{ sonuc.left_ventraldc_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_ventraldc_normmean }}</td>
+                            <td>{{ sonuc.left_ventraldc_normstddev }}</td>
+                            <td>{{ sonuc.left_ventraldc_normmin }}</td>
+                            <td>{{ sonuc.left_ventraldc_normmax }}</td>
+                            <td>{{ sonuc.left_ventraldc_normrange }}</td>
+                            <td>{{ sonuc.left_vessel_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_vessel_normmean }}</td>
+                            <td>{{ sonuc.left_vessel_normstddev }}</td>
+                            <td>{{ sonuc.left_vessel_normmin }}</td>
+                            <td>{{ sonuc.left_vessel_normmax }}</td>
+                            <td>{{ sonuc.left_vessel_normrange }}</td>
+                            <td>{{ sonuc.left_choroid_plexus_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_choroid_plexus_normmean }}</td>
+                            <td>{{ sonuc.left_choroid_plexus_normstddev }}</td>
+                            <td>{{ sonuc.left_choroid_plexus_normmin }}</td>
+                            <td>{{ sonuc.left_choroid_plexus_normmax }}</td>
+                            <td>{{ sonuc.left_choroid_plexus_normrange }}</td>
+                            <td>{{ sonuc.right_lateral_ventricle_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_lateral_ventricle_normmean }}</td>
+                            <td>{{ sonuc.right_lateral_ventricle_normstddev }}</td>
+                            <td>{{ sonuc.right_lateral_ventricle_normmin }}</td>
+                            <td>{{ sonuc.right_lateral_ventricle_normmax }}</td>
+                            <td>{{ sonuc.right_lateral_ventricle_normrange }}</td>
+                            <td>{{ sonuc.right_inf_lat_vent_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_inf_lat_vent_normmean }}</td>
+                            <td>{{ sonuc.right_inf_lat_vent_normstddev }}</td>
+                            <td>{{ sonuc.right_inf_lat_vent_normmin }}</td>
+                            <td>{{ sonuc.right_inf_lat_vent_normmax }}</td>
+                            <td>{{ sonuc.right_inf_lat_vent_normrange }}</td>
+                            <td>{{ sonuc.right_cerebellum_white_matter_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_cerebellum_white_matter_normmean }}</td>
+                            <td>{{ sonuc.right_cerebellum_white_matter_normstddev }}</td>
+                            <td>{{ sonuc.right_cerebellum_white_matter_normmin }}</td>
+                            <td>{{ sonuc.right_cerebellum_white_matter_normmax }}</td>
+                            <td>{{ sonuc.right_cerebellum_white_matter_normrange }}</td>
+                            <td>{{ sonuc.right_cerebellum_cortex_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_cerebellum_cortex_normmean }}</td>
+                            <td>{{ sonuc.right_cerebellum_cortex_normstddev }}</td>
+                            <td>{{ sonuc.right_cerebellum_cortex_normmin }}</td>
+                            <td>{{ sonuc.right_cerebellum_cortex_normmax }}</td>
+                            <td>{{ sonuc.right_cerebellum_cortex_normrange }}</td>
+                            <td>{{ sonuc.right_thalamus_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_thalamus_normmean }}</td>
+                            <td>{{ sonuc.right_thalamus_normstddev }}</td>
+                            <td>{{ sonuc.right_thalamus_normmin }}</td>
+                            <td>{{ sonuc.right_thalamus_normmax }}</td>
+                            <td>{{ sonuc.right_thalamus_normrange }}</td>
+                            <td>{{ sonuc.right_caudate_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_caudate_normmean }}</td>
+                            <td>{{ sonuc.right_caudate_normstddev }}</td>
+                            <td>{{ sonuc.right_caudate_normmin }}</td>
+                            <td>{{ sonuc.right_caudate_normmax }}</td>
+                            <td>{{ sonuc.right_caudate_normrange }}</td>
+                            <td>{{ sonuc.right_putamen_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_putamen_normmean }}</td>
+                            <td>{{ sonuc.right_putamen_normstddev }}</td>
+                            <td>{{ sonuc.right_putamen_normmin }}</td>
+                            <td>{{ sonuc.right_putamen_normmax }}</td>
+                            <td>{{ sonuc.right_putamen_normrange }}</td>
+                            <td>{{ sonuc.right_pallidum_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_pallidum_normmean }}</td>
+                            <td>{{ sonuc.right_pallidum_normstddev }}</td>
+                            <td>{{ sonuc.right_pallidum_normmin }}</td>
+                            <td>{{ sonuc.right_pallidum_normmax }}</td>
+                            <td>{{ sonuc.right_pallidum_normrange }}</td>
+                            <td>{{ sonuc.right_hippocampus_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_hippocampus_normmean }}</td>
+                            <td>{{ sonuc.right_hippocampus_normstddev }}</td>
+                            <td>{{ sonuc.right_hippocampus_normmin }}</td>
+                            <td>{{ sonuc.right_hippocampus_normmax }}</td>
+                            <td>{{ sonuc.right_hippocampus_normrange }}</td>
+                            <td>{{ sonuc.right_amygdala_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_amygdala_normmean }}</td>
+                            <td>{{ sonuc.right_amygdala_normstddev }}</td>
+                            <td>{{ sonuc.right_amygdala_normmin }}</td>
+                            <td>{{ sonuc.right_amygdala_normmax }}</td>
+                            <td>{{ sonuc.right_amygdala_normrange }}</td>
+                            <td>{{ sonuc.right_accumbens_area_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_accumbens_area_normmean }}</td>
+                            <td>{{ sonuc.right_accumbens_area_normstddev }}</td>
+                            <td>{{ sonuc.right_accumbens_area_normmin }}</td>
+                            <td>{{ sonuc.right_accumbens_area_normmax }}</td>
+                            <td>{{ sonuc.right_accumbens_area_normrange }}</td>
+                            <td>{{ sonuc.right_ventraldc_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_ventraldc_normmean }}</td>
+                            <td>{{ sonuc.right_ventraldc_normstddev }}</td>
+                            <td>{{ sonuc.right_ventraldc_normmin }}</td>
+                            <td>{{ sonuc.right_ventraldc_normmax }}</td>
+                            <td>{{ sonuc.right_ventraldc_normrange }}</td>
+                            <td>{{ sonuc.right_vessel_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_vessel_normmean }}</td>
+                            <td>{{ sonuc.right_vessel_normstddev }}</td>
+                            <td>{{ sonuc.right_vessel_normmin }}</td>
+                            <td>{{ sonuc.right_vessel_normmax }}</td>
+                            <td>{{ sonuc.right_vessel_normrange }}</td>
+                            <td>{{ sonuc.right_choroid_plexus_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_choroid_plexus_normmean }}</td>
+                            <td>{{ sonuc.right_choroid_plexus_normstddev }}</td>
+                            <td>{{ sonuc.right_choroid_plexus_normmin }}</td>
+                            <td>{{ sonuc.right_choroid_plexus_normmax }}</td>
+                            <td>{{ sonuc.right_choroid_plexus_normrange }}</td>
+                            <td>{{ sonuc.the5th_ventricle_volume_mm3 }}</td>
+                            <td>{{ sonuc.the5th_ventricle_normmean }}</td>
+                            <td>{{ sonuc.the5th_ventricle_normstddev }}</td>
+                            <td>{{ sonuc.the5th_ventricle_normmin }}</td>
+                            <td>{{ sonuc.the5th_ventricle_normmax }}</td>
+                            <td>{{ sonuc.the5th_ventricle_normrange }}</td>
+                            <td>{{ sonuc.wm_hypointensities_volume_mm3 }}</td>
+                            <td>{{ sonuc.wm_hypointensities_normmean }}</td>
+                            <td>{{ sonuc.wm_hypointensities_normstddev }}</td>
+                            <td>{{ sonuc.wm_hypointensities_normmin }}</td>
+                            <td>{{ sonuc.wm_hypointensities_normmax }}</td>
+                            <td>{{ sonuc.wm_hypointensities_normrange }}</td>
+                            <td>{{ sonuc.left_wm_hypointensities_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_wm_hypointensities_normmean }}</td>
+                            <td>{{ sonuc.left_wm_hypointensities_normstddev }}</td>
+                            <td>{{ sonuc.left_wm_hypointensities_normmin }}</td>
+                            <td>{{ sonuc.left_wm_hypointensities_normmax }}</td>
+                            <td>{{ sonuc.left_wm_hypointensities_normrange }}</td>
+                            <td>{{ sonuc.right_wm_hypointensities_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_wm_hypointensities_normmean }}</td>
+                            <td>{{ sonuc.right_wm_hypointensities_normstddev }}</td>
+                            <td>{{ sonuc.right_wm_hypointensities_normmin }}</td>
+                            <td>{{ sonuc.right_wm_hypointensities_normmax }}</td>
+                            <td>{{ sonuc.right_wm_hypointensities_normrange }}</td>
+                            <td>{{ sonuc.non_wm_hypointensities_volume_mm3 }}</td>
+                            <td>{{ sonuc.non_wm_hypointensities_normmean }}</td>
+                            <td>{{ sonuc.non_wm_hypointensities_normstddev }}</td>
+                            <td>{{ sonuc.non_wm_hypointensities_normmin }}</td>
+                            <td>{{ sonuc.non_wm_hypointensities_normmax }}</td>
+                            <td>{{ sonuc.non_wm_hypointensities_normrange }}</td>
+                            <td>{{ sonuc.left_non_wm_hypointensities_volume_mm3 }}</td>
+                            <td>{{ sonuc.left_non_wm_hypointensities_normmean }}</td>
+                            <td>{{ sonuc.left_non_wm_hypointensities_normstddev }}</td>
+                            <td>{{ sonuc.left_non_wm_hypointensities_normmin }}</td>
+                            <td>{{ sonuc.left_non_wm_hypointensities_normmax }}</td>
+                            <td>{{ sonuc.left_non_wm_hypointensities_normrange }}</td>
+                            <td>{{ sonuc.right_non_wm_hypointensities_volume_mm3 }}</td>
+                            <td>{{ sonuc.right_non_wm_hypointensities_normmean }}</td>
+                            <td>{{ sonuc.right_non_wm_hypointensities_normstddev }}</td>
+                            <td>{{ sonuc.right_non_wm_hypointensities_normmin }}</td>
+                            <td>{{ sonuc.right_non_wm_hypointensities_normmax }}</td>
+                            <td>{{ sonuc.right_non_wm_hypointensities_normrange }}</td>
+                            <td>{{ sonuc.optic_chiasm_volume_mm3 }}</td>
+                            <td>{{ sonuc.optic_chiasm_normmean }}</td>
+                            <td>{{ sonuc.optic_chiasm_normstddev }}</td>
+                            <td>{{ sonuc.optic_chiasm_normmin }}</td>
+                            <td>{{ sonuc.optic_chiasm_normmax }}</td>
+                            <td>{{ sonuc.optic_chiasm_normrange }}</td>
+                            <td>{{ sonuc.cc_posterior_volume_mm3 }}</td>
+                            <td>{{ sonuc.cc_posterior_normmean }}</td>
+                            <td>{{ sonuc.cc_posterior_normstddev }}</td>
+                            <td>{{ sonuc.cc_posterior_normmin }}</td>
+                            <td>{{ sonuc.cc_posterior_normmax }}</td>
+                            <td>{{ sonuc.cc_posterior_normrange }}</td>
+                            <td>{{ sonuc.cc_mid_posterior_volume_mm3 }}</td>
+                            <td>{{ sonuc.cc_mid_posterior_normmean }}</td>
+                            <td>{{ sonuc.cc_mid_posterior_normstddev }}</td>
+                            <td>{{ sonuc.cc_mid_posterior_normmin }}</td>
+                            <td>{{ sonuc.cc_mid_posterior_normmax }}</td>
+                            <td>{{ sonuc.cc_mid_posterior_normrange }}</td>
+                            <td>{{ sonuc.cc_central_volume_mm3 }}</td>
+                            <td>{{ sonuc.cc_central_normmean }}</td>
+                            <td>{{ sonuc.cc_central_normstddev }}</td>
+                            <td>{{ sonuc.cc_central_normmin }}</td>
+                            <td>{{ sonuc.cc_central_normmax }}</td>
+                            <td>{{ sonuc.cc_central_normrange }}</td>
+                            <td>{{ sonuc.cc_mid_anterior_volume_mm3 }}</td>
+                            <td>{{ sonuc.cc_mid_anterior_normmean }}</td>
+                            <td>{{ sonuc.cc_mid_anterior_normstddev }}</td>
+                            <td>{{ sonuc.cc_mid_anterior_normmin }}</td>
+                            <td>{{ sonuc.cc_mid_anterior_normmax }}</td>
+                            <td>{{ sonuc.cc_mid_anterior_normrange }}</td>
+                            <td>{{ sonuc.cc_anterior_volume_mm3 }}</td>
+                            <td>{{ sonuc.cc_anterior_normmean }}</td>
+                            <td>{{ sonuc.cc_anterior_normstddev }}</td>
+                            <td>{{ sonuc.cc_anterior_normmin }}</td>
+                            <td>{{ sonuc.cc_anterior_normmax }}</td>
+                            <td>{{ sonuc.cc_anterior_normrange }}</td>
+
+                            <!-- Diğer sütunlar -->
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Henüz kayıtlı FreeSurfer sonucu yok.</p>
+        {% endif %}
+    </div>
+
+    <!-- Styling for the table -->
+    <style>
+        .dashboard-content {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table th, table td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+    </style>
+{% endblock %}

@@ -7,7 +7,7 @@
     <div class="dashboard-content">
         <h2>Yeni Muayene Oluştur</h2>
 
-        <form method="POST" action="{% url 'new_examination' %}">
+        <form method="POST" action="{% url 'new_examination' %}" enctype="multipart/form-data">
             {% csrf_token %}
 
             <!-- Dropdown for selecting patient -->

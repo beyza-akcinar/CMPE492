@@ -23,4 +23,8 @@ urlpatterns = [
     path('', views.home_view, name='home'),
     path('yenimuayene/', views.new_examination_view, name='new_examination'),
     path('yenihasta/', views.new_patient_view, name='new_patient'),
+    path('freesurfer-sonuc/', views.freesurfer_list_view, name='freesurfer_list'),
+    path('freesurfer/export_excel/', views.export_freesurfer_to_excel, name='export_excel'),
+
+
 ]
