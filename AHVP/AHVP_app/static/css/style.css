@@ -10,6 +10,7 @@ body, html {
 .dashboard-container {
     display: flex;
     height: 100%;
+    width: 100%;
 }
 
 /* Header */
@@ -30,7 +31,6 @@ body, html {
 .dashboard-link:hover {
     cursor: pointer;
 }
-
 
 /* Sidebar Menu */
 .sidebar {
@@ -57,7 +57,7 @@ body, html {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 15px;
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
@@ -75,29 +75,27 @@ body, html {
 /* Styling the submit button */
 .btn-submit {
     padding: 10px 20px;
-    font-size: 16px;
     font-weight: bold;
+    font-size: 14px;
     color: #fff;
     background-color: #495057; /* Primary blue color */
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
     width: 100%;
     max-width: 200px;
     text-align: center;
+    transition: background-color 0.3s ease;
 }
 
 /* Hover effect */
 .btn-submit:hover {
     background-color: #343a40; /* Darker blue for hover */
-    transform: scale(1.05); /* Slight enlarge effect */
 }
 
 /* Active (clicked) state */
 .btn-submit:active {
     background-color: #003d80; /* Even darker blue for active state */
-    transform: scale(0.98); /* Slight shrink effect */
 }
 
 /* Disable the button (when needed) */
@@ -129,6 +127,7 @@ body, html {
     background-color: #ffffff;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    min-height: calc(100vh - 50px);
 }
 
 .dashboard-content {
