@@ -14,7 +14,7 @@ def home_view(request):
 
 def new_examination_view(request):
     if request.method == 'POST':
-        form = MuayeneForm(request.POST)
+        form = MuayeneForm(request.POST, request.FILES)
         if form.is_valid():
             muayene_instance = form.save()
             # FreeSurfer dosyasını al
@@ -718,6 +718,7 @@ def process_freesurfer_file(file, muayene):
             )
 
         print(f"Successfully processed and saved {len(df)} FreeSurfer rows for Muayene {muayene.id}")
+        FreeSurferSonuc.save()
 
     except Exception as e:
         print(f"Error processing FreeSurfer file: {e}")
@@ -726,7 +727,6 @@ def freesurfer_list_view(request):
     tanilar = FreeSurferSonuc.objects.values_list('diagnosis', flat=True).distinct()
         
     selected_tani = request.POST.get('tani') or request.GET.get('tani') or 'Tüm Tanılar'
-    print(selected_tani)
 
     if selected_tani != 'Tüm Tanılar':
         freesurfer_sonuclari = FreeSurferSonuc.objects.filter(diagnosis=selected_tani)
@@ -760,9 +760,9 @@ def freesurfer_list_view(request):
 
 
 def export_freesurfer_to_excel(request):
-    selected_tani = request.GET.get('tani')  # GET parametresinden tanıyı al
+    selected_tani = request.POST.get('tani') or request.GET.get('tani') or 'Tüm Tanılar'
 
-    if selected_tani:
+    if selected_tani != 'Tüm Tanılar':
         freesurfer_sonuclari = FreeSurferSonuc.objects.filter(diagnosis=selected_tani)
     else:
         freesurfer_sonuclari = FreeSurferSonuc.objects.all()
