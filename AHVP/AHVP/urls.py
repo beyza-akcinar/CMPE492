@@ -26,6 +26,6 @@ urlpatterns = [
     path('freesurfer-sonuc/', views.freesurfer_list_view, name='freesurfer_list'),
     path('freesurfer/export_excel/', views.export_freesurfer_to_excel, name='export_excel'),
     path('toplu-veri-yukleme/', views.upload_bulk_mri_results_view, name='upload_bulk_data'),
-
-
+    path('muayene/edit/', views.search_examination_view, name='search_examination_view'),
+    path('muayene/edit/<int:id>/', views.edit_examination_view, name='edit_examination_view'),
 ]
