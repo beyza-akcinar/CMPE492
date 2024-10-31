@@ -1,9 +1,12 @@
 <nav class="menu-bar">
     <ul>
+        <h4>Hasta İşlemleri</h4>
         <li>{% include 'components/button.html' with label="Yeni Hasta Kaydı" style_class="btn-menu" url="/yenihasta" %}</li>
-        <li>{% include 'components/button.html' with label="Yeni Muayene" style_class="btn-menu" url="/yenimuayene" %}</li>
+        <h4>Muayene İşlemleri</h4>
+        <li>{% include 'components/button.html' with label="Yeni Muayene Oluştur" style_class="btn-menu" url="/yenimuayene" %}</li>
+        <li>{% include 'components/button.html' with label="Muayene Arama" style_class="btn-menu" url="/muayene/edit" %}</li>
+        <h4>Veri İşlemleri</h4>
         <li>{% include 'components/button.html' with label="MRI FreeSurfer Görüntüle" style_class="btn-menu" url="/freesurfer-sonuc" %}</li>
         <li>{% include 'components/button.html' with label="Toplu Veri Yükleme" style_class="btn-menu" url="/toplu-veri-yukleme/" %}</li>
-
     </ul>
 </nav>

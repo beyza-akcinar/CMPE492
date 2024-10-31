@@ -31,29 +31,46 @@
             <!-- Bilissel Test Sonuclari -->
             <div class="form-section">
                 <h3>Bilişsel Test Sonuçları</h3>
-                {% include 'components/numberinput.html' with id='mmse' label='Mini-Mental State Examination (MMSE)' name='mmse' style_class='form-control' placeholder='MMSE skorunu giriniz' %}
-                {% include 'components/numberinput.html' with id='moca' label='Montreal Cognitive Assessment (MoCA)' name='moca' style_class='form-control' placeholder='MoCA skorunu giriniz' %}
                 {% include 'components/numberinput.html' with id='acer' label="Addenbrooke's Cognitive Examination Revised (ACE-R)" name='acer' style_class='form-control' placeholder='ACE-R skorunu giriniz' %}
+                {% include 'components/numberinput.html' with id='npt' label="Ayrıntılı Nöropsikolojik Test (NPT)" name='acer' style_class='form-control' placeholder='NPT skorunu giriniz' %}
+                {% include 'components/numberinput.html' with id='beck_depresyon' label='BECK Depresyon Ölçeği' name='beck_depresyon' style_class='form-control' placeholder='BECK Depresyon skorunu giriniz' min=0 max=63 %}
+                <p>(0-9: Minimal depresyon, 10-16: Hafif depresyon, 17-29: Orta düzeyde depresyon, 30-63: Şiddetli depresyon)</p>
+                {% include 'components/numberinput.html' with id='beck_anksiyete' label='BECK Anksiyete Ölçeği' name='beck_anksiyete' style_class='form-control' placeholder='BECK Anksiyete skorunu giriniz' min=0 max=63 %}
+                <p>(0-7: Minimal anksiyete, 8-15: Hafif anksiyete, 16-25: Orta düzeyde anksiyete, 26-63: Şiddetli anksiyete)</p>
+                {% include 'components/numberinput.html' with id='geriatrik_depresyon' label='Geriatrik Depresyon Ölçeği' name='geriatrik_depresyon' style_class='form-control' placeholder='Geriatrik Depresyon Ölçeği (GDÖ) skorunu giriniz' min=0 max=30 %}
+                <p>(0-9: Depresyon belirtisi yok, 10-19: Hafif depresyon, 20-30: Şiddetli depresyon)</p>
+            </div>
+
+            <!-- MMSE Sonuclari -->
+            <div class="form-section">
+                <h3>Mini-Mental State Examination (MMSE) Sonuçları</h3>
+                <p>(24-30: Normal bilişsel fonksiyon, 18-23: Hafif bilişsel bozukluk, 0-17: Orta/şiddetli bilişsel bozukluk)</p>
+                {% include 'components/numberinput.html' with id='mmse_zaman' label='Oryantasyon (Zaman)' name='mmse_zaman' style_class='form-control' placeholder='MMSE oryantasyon (zaman) skorunu giriniz (0-5)' min=0 max=5 %}
+                {% include 'components/numberinput.html' with id='mmse_yer' label='Oryantasyon (Yer)' name='mmse_yer' style_class='form-control' placeholder='MMSE oryantasyon (yer) skorunu giriniz (0-5)' min=0 max=5 %}
+                {% include 'components/numberinput.html' with id='mmse_kayithafizasi' label='Kayıt Hafızası' name='mmse_kayithafizasi' style_class='form-control' placeholder='MMSE kayıt hafızası skorunu giriniz (0-3)' min=0 max=3 %}
+                {% include 'components/numberinput.html' with id='mmse_dikkat' label='Dikkat ve Hesap Yapma' name='mmse_dikkat' style_class='form-control' placeholder='MMSE dikkat ve hesap yapma skorunu giriniz (0-5)' min=0 max=5 %}
+                {% include 'components/numberinput.html' with id='mmse_hatirlama' label='Hatırlama' name='mmse_hatirlama' style_class='form-control' placeholder='MMSE hatırlama skorunu giriniz (0-3)' min=0 max=3 %}
+                {% include 'components/numberinput.html' with id='mmse_lisan' label='Lisan' name='mmse_lisan' style_class='form-control' placeholder='MMSE lisan skorunu giriniz (0-9)' min=0 max=9 %}
+                {% include 'components/numberinput.html' with id='mmse' label='MMSE Toplam Skor' name='mmse' style_class='form-control' placeholder='MMSE toplam skorunu giriniz (0-30)' min=0 max=30 %}
             </div>
 
             <!-- Kan Tahlili Sonuclari -->
             <div class="form-section">
                 <h3>Kan Tahlili Sonuçları</h3>
-                {% include 'components/numberinput.html' with id='bt' label='BT' name='bt' style_class='form-control' placeholder='BT değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='tam-kan-hb' label='Tam Kan-Hb' name='tam_kan_hb' style_class='form-control' placeholder='Tam Kan-Hb değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='tam-kan-lym' label='Tam Kan-LYM' name='tam_kan_lym' style_class='form-control' placeholder='Tam Kan-LYM değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='tam-kan-neu' label='Tam Kan-NEU' name='tam_kan_neu' style_class='form-control' placeholder='Tam Kan-NEU değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='tam-kan-plt' label='Tam Kan-PLT' name='tam_kan_plt' style_class='form-control' placeholder='Tam Kan-PLT değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='vitamin-b12' label='Vitamin B12 Seviyesi' name='vitamin_b12' style_class='form-control' placeholder='Vitamin B12 seviyesini giriniz' %}
-                {% include 'components/numberinput.html' with id='ast' label='Aspartat Aminotransferaz (AST) Değeri' name='ast' style_class='form-control' placeholder='AST değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='alt' label='Alanin Aminotransferaz (ALT) Değeri' name='alt' style_class='form-control' placeholder='ALT değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='ldh' label='Laktat Dehidrogenaz (LDH) Değeri' name='ldh' style_class='form-control' placeholder='LDH değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='bun' label='Kan Üre Azotu (BUN) Değeri' name='bun' style_class='form-control' placeholder='BUN değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='kreatinin' label='Kreatinin Değeri' name='kreatinin' style_class='form-control' placeholder='Kreatinin değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='uric-acid' label='Ürik Asit Değeri' name='uric_acid' style_class='form-control' placeholder='Ürik asit değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='eritrosit' label='Eritrosit Değeri' name='eritrosit' style_class='form-control' placeholder='Eritrosit değerini giriniz' %}
-                {% include 'components/numberinput.html' with id='sedim' label='Sedimantasyon Hızı (ESR)' name='sedim' style_class='form-control' placeholder='Sedimantasyon hızını giriniz' %}
-                {% include 'components/textfield.html' with id='vldrl' label='Sifilis Serolojisi (VDRL)' name='vldrl' value='' placeholder='VDRL sonucunu giriniz' style_class='form-control' %}
+                {% include 'components/numberinput.html' with id='tam-kan-hb' label='Tam Kan-Hb (g/dL)' name='tam_kan_hb' style_class='form-control' placeholder='Tam Kan-Hb değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='tam-kan-lym' label='Tam Kan-LYM (10^3/mm^3)' name='tam_kan_lym' style_class='form-control' placeholder='Tam Kan-LYM değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='tam-kan-neu' label='Tam Kan-NEU (10^3/mm^3)' name='tam_kan_neu' style_class='form-control' placeholder='Tam Kan-NEU değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='tam-kan-plt' label='Tam Kan-PLT (10^3/mm^3)' name='tam_kan_plt' style_class='form-control' placeholder='Tam Kan-PLT değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='vitamin-b12' label='Vitamin B12 Seviyesi (pg/mL)' name='vitamin_b12' style_class='form-control' placeholder='Vitamin B12 seviyesini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='ast' label='Aspartat Aminotransferaz (AST) Değeri (U/L)' name='ast' style_class='form-control' placeholder='AST değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='alt' label='Alanin Aminotransferaz (ALT) Değeri (U/L)' name='alt' style_class='form-control' placeholder='ALT değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='ldh' label='Laktat Dehidrogenaz (LDH) Değeri' name='ldh' style_class='form-control' placeholder='LDH değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='bun' label='Kan Üre Azotu (BUN) Değeri' name='bun' style_class='form-control' placeholder='BUN değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='kreatinin' label='Kreatinin Değeri (mg/dL)' name='kreatinin' style_class='form-control' placeholder='Kreatinin değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='uric-acid' label='Ürik Asit Değeri' name='uric_acid' style_class='form-control' placeholder='Ürik asit değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='eritrosit' label='Eritrosit Değeri' name='eritrosit' style_class='form-control' placeholder='Eritrosit değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='sedim' label='Sedimantasyon Hızı (ESR)' name='sedim' style_class='form-control' placeholder='Sedimantasyon hızını giriniz' min=0 %}
+                {% include 'components/textfield.html' with id='vldrl' label='Sifilis Serolojisi (VDRL)' name='vldrl' value='' placeholder='VDRL sonucunu giriniz' style_class='form-control' min=0 %}
             </div>
 
             <!-- BT Section -->
@@ -67,7 +84,7 @@
                 <h3>MRI</h3>
                 {% include 'components/textarea.html' with id='mri-notes' name='mri_notes' style_class='form-control' placeholder='MRI notlarını giriniz' %}
                 {% include 'components/dateinput.html' with id='mri-tarihi' label='MRI Tarihi' name='mri_tarihi' style_class='form-control' %}
-                {% include 'components/fileinput.html' with id='mri-freesurfer' name='mri_freesurfer' label='MRI Freesurfer Sonuçları' style_class='form-control' %}
+                {% include 'components/fileinput.html' with id='mri-freesurfer' name='mri_freesurfer' label='MRI Freesurfer Sonuçları (Excel)' style_class='form-control' %}
             </div>
 
             <!-- PET Section -->
@@ -91,16 +108,24 @@
                 {% include 'components/textarea.html' with id='pa-akciger' name='pa_akciger' value='' placeholder='PA Akciğer Grafisi Sonucunu giriniz' style_class='form-control' %}
             </div>
 
-            <!-- EKG Section -->
-            <div class="form-section">
-                <h3>Elektrokardiyogram (EKG)</h3>
-                {% include 'components/textarea.html' with id='ekg' name='ekg' value='' placeholder='EKG sonucunu giriniz' style_class='form-control' %}
-            </div>
-
             <!-- EEG Section -->
             <div class="form-section">
                 <h3>Elektroansefalografi (EEG)</h3>
                 {% include 'components/textarea.html' with id='eeg' name='eeg' value='' placeholder='EEG sonucunu giriniz' style_class='form-control' %}
+                {% include 'components/fileinput.html' with id='eeg-file' name='eeg-file' label='EEG Sonuçları' style_class='form-control' %}
+            </div>
+
+            <!-- PBOS Section -->
+            <div class="form-section">
+                <h3>BOS Sonucu</h3>
+                {% include 'components/numberinput.html' with id='amiloid' label='Amiloid Düzeyi' name='amiloid' style_class='form-control' placeholder='Amiloid düzeyini giriniz' %}
+                {% include 'components/numberinput.html' with id='tau' label='Tau Düzeyi' name='tau' style_class='form-control' placeholder='Tau düzeyini giriniz' %}
+            </div>
+
+            <!-- Genetik Testler Section -->
+            <div class="form-section">
+                <h3>Genetik Testler</h3>
+                {% include 'components/textarea.html' with id='genetik-testler' name='genetik_testler' value='' placeholder='Genetik test sonuçları giriniz' style_class='form-control' %}
             </div>
 
             <!-- Ek Testler Section -->

@@ -114,9 +114,18 @@ class Muayene(models.Model):
     patolojik_refleks = models.BooleanField(default=False)
 
     # Bilissel Test Sonuclari
-    mmse = models.IntegerField(null=True, blank=True)
-    moca = models.IntegerField(null=True, blank=True)
     acer = models.IntegerField(null=True, blank=True)
+    npt = models.IntegerField(null=True, blank=True)
+    beck_depresyon = models.IntegerField(null=True, blank=True)
+    beck_anksiyete = models.IntegerField(null=True, blank=True)
+    geriatrik_depresyon = models.IntegerField(null=True, blank=True)
+    mmse_zaman = models.IntegerField(null=True, blank=True)
+    mmse_yer = models.IntegerField(null=True, blank=True)
+    mmse_kayithafizasi = models.IntegerField(null=True, blank=True)
+    mmse_dikkat = models.IntegerField(null=True, blank=True)
+    mmse_hatirlama = models.IntegerField(null=True, blank=True)
+    mmse_lisan = models.IntegerField(null=True, blank=True)
+    mmse = models.IntegerField(null=True, blank=True)
 
     # Kan Tahlili Sonuclari
     tam_kan_hb = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
@@ -157,11 +166,13 @@ class Muayene(models.Model):
     # PA Akciğer Grafisi
     pa_akciger_grafisi = models.TextField(null=True, blank=True)
 
-    # EKG
-    ekg_sonucu = models.TextField(null=True, blank=True)
-
     # EEG
     eeg_sonucu = models.TextField(null=True, blank=True)
+    eeg_file = models.FileField(upload_to='mri/', null=True, blank=True)
+
+    #BOS
+    amiloid = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    tau = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     # Ek Testler
     ek_testler = models.TextField(null=True, blank=True)
@@ -186,7 +197,6 @@ class Muayene(models.Model):
         date1 = datetime.strptime(decrypt(visit1.sifrelenmis_tarih), '%Y-%m-%d %H:%M:%S')
         date2 = datetime.strptime(decrypt(visit2.sifrelenmis_tarih), '%Y-%m-%d %H:%M:%S')
         return abs(date2 - date1)  # Return the difference as a timedelta object
-
 
 class FreeSurferSonuc(models.Model):
     muayene = models.ForeignKey(Muayene, on_delete=models.CASCADE)  # FreeSurfer sonuçları muayene ile ilişkili

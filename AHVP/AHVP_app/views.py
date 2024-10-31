@@ -1,12 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Hasta, Muayene, FreeSurferSonuc
 from .forms import MuayeneForm
 import pandas as pd
+from django.db.models import Q
 import numpy as np
 from django.http import HttpResponse
 from django.db import models
-
-
+from django.contrib import messages
+import ast
 
 def home_view(request):
     return render(request, 'home.html')
@@ -37,6 +38,9 @@ def new_examination_view(request):
 
 def get_pretty_attribute_name(attribute_name):
     attribute_mapping = {
+        'id': 'Muayene ID',
+        'muayene': 'Hasta ID',
+        'diagnosis': 'Tanı',
         'lh_cortex_vol': 'LH Cortex Volume',
         'rh_cortex_vol': 'RH Cortex Volume',
         'brain_seg_vol_not_vent': 'Brain Seg Vol Not Vent',
@@ -136,41 +140,41 @@ def get_pretty_attribute_name(attribute_name):
         'left_amygdala_normmax': 'Left Amygdala Norm Max',
         'left_amygdala_normrange': 'Left Amygdala Norm Range',
         'csf_volume_mm3': 'CSF Volume (mm3)',
-        'csf_norm_mean': 'CSF Norm Mean',
-        'csf_norm_std_dev': 'CSF Norm Std Dev',
-        'csf_norm_min': 'CSF Norm Min',
-        'csf_norm_max': 'CSF Norm Max',
-        'csf_norm_range': 'CSF Norm Range',
+        'csf_normmean': 'CSF Norm Mean',
+        'csf_normstddev': 'CSF Norm Std Dev',
+        'csf_normmin': 'CSF Norm Min',
+        'csf_normmax': 'CSF Norm Max',
+        'csf_normrange': 'CSF Norm Range',
         'left_accumbens_area_volume_mm3': 'Left Accumbens Area Volume (mm3)',
-        'left_accumbens_area_norm_mean': 'Left Accumbens Area Norm Mean',
-        'left_accumbens_area_norm_std_dev': 'Left Accumbens Area Norm Std Dev',
-        'left_accumbens_area_norm_min': 'Left Accumbens Area Norm Min',
-        'left_accumbens_area_norm_max': 'Left Accumbens Area Norm Max',
-        'left_accumbens_area_norm_range': 'Left Accumbens Area Norm Range',
-        'left_ventral_dc_volume_mm3': 'Left Ventral DC Volume (mm3)',
-        'left_ventral_dc_norm_mean': 'Left Ventral DC Norm Mean',
-        'left_ventral_dc_norm_std_dev': 'Left Ventral DC Norm Std Dev',
-        'left_ventral_dc_norm_min': 'Left Ventral DC Norm Min',
-        'left_ventral_dc_norm_max': 'Left Ventral DC Norm Max',
-        'left_ventral_dc_norm_range': 'Left Ventral DC Norm Range',
+        'left_accumbens_area_normmean': 'Left Accumbens Area Norm Mean',
+        'left_accumbens_area_normstddev': 'Left Accumbens Area Norm Std Dev',
+        'left_accumbens_area_normmin': 'Left Accumbens Area Norm Min',
+        'left_accumbens_area_normmax': 'Left Accumbens Area Norm Max',
+        'left_accumbens_area_normrange': 'Left Accumbens Area Norm Range',
+        'left_ventraldc_volume_mm3': 'Left Ventral DC Volume (mm3)',
+        'left_ventraldc_normmean': 'Left Ventral DC Norm Mean',
+        'left_ventraldc_normstddev': 'Left Ventral DC Norm Std Dev',
+        'left_ventraldc_normmin': 'Left Ventral DC Norm Min',
+        'left_ventraldc_normmax': 'Left Ventral DC Norm Max',
+        'left_ventraldc_normrange': 'Left Ventral DC Norm Range',
         'left_vessel_volume_mm3': 'Left Vessel Volume (mm3)',
-        'left_vessel_norm_mean': 'Left Vessel Norm Mean',
-        'left_vessel_norm_std_dev': 'Left Vessel Norm Std Dev',
-        'left_vessel_norm_min': 'Left Vessel Norm Min',
-        'left_vessel_norm_max': 'Left Vessel Norm Max',
-        'left_vessel_norm_range': 'Left Vessel Norm Range',
+        'left_vessel_normmean': 'Left Vessel Norm Mean',
+        'left_vessel_normstddev': 'Left Vessel Norm Std Dev',
+        'left_vessel_normmin': 'Left Vessel Norm Min',
+        'left_vessel_normmax': 'Left Vessel Norm Max',
+        'left_vessel_normrange': 'Left Vessel Norm Range',
         'left_choroid_plexus_volume_mm3': 'Left Choroid Plexus Volume (mm3)',
-        'left_choroid_plexus_norm_mean': 'Left Choroid Plexus Norm Mean',
-        'left_choroid_plexus_norm_std_dev': 'Left Choroid Plexus Norm Std Dev',
-        'left_choroid_plexus_norm_min': 'Left Choroid Plexus Norm Min',
-        'left_choroid_plexus_norm_max': 'Left Choroid Plexus Norm Max',
-        'left_choroid_plexus_norm_range': 'Left Choroid Plexus Norm Range',
+        'left_choroid_plexus_normmean': 'Left Choroid Plexus Norm Mean',
+        'left_choroid_plexus_normstddev': 'Left Choroid Plexus Norm Std Dev',
+        'left_choroid_plexus_normmin': 'Left Choroid Plexus Norm Min',
+        'left_choroid_plexus_normmax': 'Left Choroid Plexus Norm Max',
+        'left_choroid_plexus_normrange': 'Left Choroid Plexus Norm Range',
         'right_lateral_ventricle_volume_mm3': 'Right Lateral Ventricle Volume (mm3)',
-        'right_lateral_ventricle_norm_mean': 'Right Lateral Ventricle Norm Mean',
-        'right_lateral_ventricle_norm_std_dev': 'Right Lateral Ventricle Norm Std Dev',
-        'right_lateral_ventricle_norm_min': 'Right Lateral Ventricle Norm Min',
-        'right_lateral_ventricle_norm_max': 'Right Lateral Ventricle Norm Max',
-        'right_lateral_ventricle_norm_range': 'Right Lateral Ventricle Norm Range',
+        'right_lateral_ventricle_normmean': 'Right Lateral Ventricle Norm Mean',
+        'right_lateral_ventricle_normstddev': 'Right Lateral Ventricle Norm Std Dev',
+        'right_lateral_ventricle_normmin': 'Right Lateral Ventricle Norm Min',
+        'right_lateral_ventricle_normmax': 'Right Lateral Ventricle Norm Max',
+        'right_lateral_ventricle_normrange': 'Right Lateral Ventricle Norm Range',
         'right_inf_lat_vent_volume_mm3': 'Right Inferior Lateral Ventricle Volume (mm3)',
         'right_inf_lat_vent_normmean': 'Right Inferior Lateral Ventricle Norm Mean',
         'right_inf_lat_vent_normstddev': 'Right Inferior Lateral Ventricle Norm Std Dev',
@@ -626,7 +630,6 @@ def create_freesurfer_sonuc(muayene, row):
         cc_anterior_normrange=row.get('CC_Anterior_normRange')
     )
 
-
 def process_freesurfer_file(file, muayene):
     try:
         # Excel dosyasını oku
@@ -642,16 +645,54 @@ def process_freesurfer_file(file, muayene):
     except Exception as e:
         print(f"Error processing FreeSurfer file: {e}")
 
-
+selected_columns = []
 def freesurfer_list_view(request):
+    global selected_columns
     tanilar = FreeSurferSonuc.objects.values_list('diagnosis', flat=True).distinct()
-        
-    selected_tani = request.POST.get('tani') or request.GET.get('tani') or 'Tüm Tanılar'
+     # Dynamically get all fields from the model
+    all_fields = [field.name for field in FreeSurferSonuc._meta.get_fields()]
 
-    if selected_tani != 'Tüm Tanılar':
-        freesurfer_sonuclari = FreeSurferSonuc.objects.filter(diagnosis=selected_tani)
+    if request.GET.get('reset'):
+        selected_tani = 'Tüm Tanılar'
+        selected_hasta_id = ''
+        selected_columns = []
+        columns = [{"field": field, "label": get_pretty_attribute_name(field)} for field in all_fields]
+        print("Resetting filters")
     else:
-        freesurfer_sonuclari = FreeSurferSonuc.objects.all()
+        selected_tani = request.GET.get('tani', 'Tüm Tanılar')
+        selected_hasta_id = request.GET.get('hasta_id')
+
+        added_columns = request.GET.getlist('columns')
+
+        # Sadece mevcut olmayanları ekle
+        for column in added_columns:
+            if column not in selected_columns:
+                selected_columns.append(column)
+        
+
+    filters = {}
+    if selected_tani and selected_tani != 'Tüm Tanılar':
+        filters['diagnosis'] = selected_tani
+    if selected_hasta_id:
+        filters['muayene__hasta__unique_hasta_id'] = selected_hasta_id
+
+    freesurfer_sonuclari = FreeSurferSonuc.objects.filter(**filters)
+    
+    # Map each field to a pretty label (using your existing function or a mapping)
+    columns = [{"field": field, "label": get_pretty_attribute_name(field)} for field in all_fields]
+    static_columns = [{"field": field, "label": get_pretty_attribute_name(field)} for field in all_fields]
+
+    if (len(selected_columns) > 0):
+        converted_columns = []
+        for column_str in selected_columns:
+            try:
+                # Convert the string to a dictionary
+                column_dict = ast.literal_eval(column_str)
+                if isinstance(column_dict, dict):  # Ensure it's a dictionary
+                    converted_columns.append(column_dict)  # Append the dictionary to the list
+            except (SyntaxError, ValueError) as e:
+                print(f"Invalid column string: {column_str} - Error: {e}")
+        columns = columns[:2] + converted_columns
 
     statistics = {}
     if request.method == "POST":
@@ -663,16 +704,20 @@ def freesurfer_list_view(request):
             values = freesurfer_sonuclari.values_list(attribute, flat=True)
             filtered_values = [v for v in values if v is not None]
             if filtered_values:
-                mean = np.mean(filtered_values)
-                stddev = np.std(filtered_values)
+                mean = round(np.mean(filtered_values), 2)
+                stddev = round(np.std(filtered_values), 2)
                 statistics[attribute] = {'mean': mean, 'stddev': stddev}
 
     pretty_statistics = {get_pretty_attribute_name(attr): stats for attr, stats in statistics.items()}
 
     return render(request, 'freesurfer_list.html', {
         'freesurfer_sonuclari': freesurfer_sonuclari,
+        'columns': columns,
+        'static_columns': static_columns,
         'tanilar': tanilar,
         'selected_tani': selected_tani,
+        'selected_hasta_id': selected_hasta_id,
+        'selected_columns': selected_columns,
         'statistics': pretty_statistics
     })
 
@@ -1017,8 +1062,6 @@ def upload_bulk_mri_results_view(request):
         return render(request, 'bulk_data_upload.html')
     return render(request, 'bulk_data_upload.html')
 
-
-
 def new_patient_view(request):
     if request.method == 'POST':
         # Get data from the form
@@ -1051,3 +1094,35 @@ def new_patient_view(request):
         'medeni_durum_options': Hasta.MEDENI_DURUM_CHOICES,
         'egitim_durum_options': Hasta.EGITIM_DURUM_CHOICES 
     })
+
+def search_examination_view(request):
+    arama_sonucu = None
+    if request.method == "GET":
+        arama_kriteri = request.GET.get("arama", "")
+        try:
+            # Sayısal bir ID girildiyse burada işlenir.
+            arama_kriteri_id = int(arama_kriteri)
+            arama_sonucu = Muayene.objects.filter(
+                Q(hasta__isim__icontains=arama_kriteri) |
+                Q(hasta_id=arama_kriteri_id) |
+                Q(id=arama_kriteri_id)
+            )
+        except ValueError:
+            # Eğer bir isimle arama yapılmak isteniyorsa buradan devam edilir.
+            arama_sonucu = Muayene.objects.filter(
+                Q(hasta__isim__icontains=arama_kriteri)
+            )
+    return render(request, 'search_examination.html', {'arama_sonucu': arama_sonucu})
+
+def edit_examination_view(request, id):
+    muayene = get_object_or_404(Muayene, id=id)
+    if request.method == 'POST':
+        form = MuayeneForm(request.POST, request.FILES, instance=muayene)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Muayene başarıyla kaydedildi.')  # Success message
+            return redirect('search_examination_view')
+    else:
+        form = MuayeneForm(instance=muayene)
+
+    return render(request, 'edit_examination.html', {'form': form, 'muayene': muayene})

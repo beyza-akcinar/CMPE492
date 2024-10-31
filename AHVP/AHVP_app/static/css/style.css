@@ -104,6 +104,38 @@ body, html {
     cursor: not-allowed; /* Change cursor to indicate disabled */
 }
 
+/* Styling the cancel button */
+.btn-cancel {
+    padding: 10px 20px;
+    font-weight: bold;
+    font-size: 14px;
+    color: #fff;
+    background-color: #dc3545; /* Primary red color for cancel button */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 200px;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover effect */
+.btn-cancel:hover {
+    background-color: #c82333; /* Darker red for hover */
+}
+
+/* Active (clicked) state */
+.btn-cancel:active {
+    background-color: #a71c1c; /* Even darker red for active state */
+}
+
+/* Disable the button (when needed) */
+.btn-cancel:disabled {
+    background-color: #ccc; /* Gray color for disabled button */
+    cursor: not-allowed; /* Change cursor to indicate disabled */
+}
+
 /* Menu Button */
 .btn-menu {
     display: block;
