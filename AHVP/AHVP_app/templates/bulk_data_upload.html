@@ -4,16 +4,14 @@
 
 {% block content %}
     <div class="dashboard-content">
-        <h1>MRI FreeSurfer Sonuçları Yükle</h1>
+        <h2>Toplu Veri Yükle</h2>
+        <h3>MRI FreeSurfer Sonuçları Yükle</h3>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="file" name="bulk_mri_file" accept=".xlsx">
             <button type="submit">Yükle</button>
         </form>
-    </div>
-
-    <div class="dashboard-content">
-        <h1>Toplu Muayene Verisi Yükle</h1>
+        <h3>Toplu Muayene Verisi Yükle</h3>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="file" name="visit_file" accept=".xlsx">

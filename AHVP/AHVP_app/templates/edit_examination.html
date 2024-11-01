@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>{{ muayene.id }} - Muayene Düzenle</h2>
-
-    <form method="POST" action="{% url 'edit_examination_view' muayene.id %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn-submit">Kaydet</button>
-    </form>
+    <div class="dashboard-content">
+        <h2>{{ muayene.id }} - Muayene Düzenle</h2>
+        <form method="POST" action="{% url 'edit_examination_view' muayene.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn-submit">Kaydet</button>
+        </form>
+    </div>
 
 {% endblock %}

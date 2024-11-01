@@ -661,6 +661,7 @@ def freesurfer_list_view(request):
     else:
         selected_tani = request.GET.get('tani', 'Tüm Tanılar')
         selected_hasta_id = request.GET.get('hasta_id')
+        print(selected_hasta_id)
 
         added_columns = request.GET.getlist('columns')
 
