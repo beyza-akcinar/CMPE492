@@ -21,7 +21,11 @@
             <label for="columns">Sütun Seçimi:</label>
             <select name="columns" id="columns" multiple="multiple" size="10">
                 {% for column in static_columns %}
-                    <option value="{{ column }}" {% if column in selected_columns %} selected {% endif %}>{{ column }}</option>
+                    {% if column.field != 'muayene' and column.field != 'id' %}
+                        <option value="{{ column }}" {% if column in selected_columns %} selected {% endif %}>
+                            {{ column.label }}
+                        </option>
+                    {% endif %}
                 {% endfor %}
             </select>
 
