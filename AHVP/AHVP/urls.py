@@ -28,4 +28,5 @@ urlpatterns = [
     path('toplu-veri-yukleme/', views.upload_bulk_mri_results_view, name='upload_bulk_data'),
     path('muayene/edit/', views.search_examination_view, name='search_examination_view'),
     path('muayene/edit/<int:id>/', views.edit_examination_view, name='edit_examination_view'),
+    path('hasta/<int:patient_id>/', views.patient_detail_view, name='patient_detail_view'),
 ]

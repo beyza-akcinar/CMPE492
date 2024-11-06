@@ -1,4 +1,4 @@
 <div class="textfield">
     <label for="{{ id }}">{{ label }}</label>
-    <input type="text" id="{{ id }}" name="{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}" class="{{ style_class }}">
+    <input type="text" id="{{ id }}" name="{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}" class="{{ style_class }}" {% if readonly %}readonly{% endif %}>
 </div>
