@@ -1127,3 +1127,8 @@ def edit_examination_view(request, id):
         form = MuayeneForm(instance=muayene)
 
     return render(request, 'edit_examination.html', {'form': form, 'muayene': muayene})
+
+def patient_detail_view(request, patient_id):
+    hasta = get_object_or_404(Hasta, unique_hasta_id=patient_id)
+    muayeneler = Muayene.objects.filter(hasta=hasta)
+    return render(request, 'patient_detail_view.html', {'hasta': hasta , 'muayeneler': muayeneler})

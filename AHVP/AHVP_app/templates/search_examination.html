@@ -23,14 +23,24 @@
             <table>
                 <tr>
                     <th>Muayene ID</th>
-                    <th>Hasta Adı (Hasta ID)</th>
+                    <th>Hasta ID</th>
+                    <th>Hasta Adı</th>
                     <th>Düzenle</th>
                 </tr>
                 {% for muayene in arama_sonucu %}
                 <tr>
                     <td>{{ muayene.id }}</td>
-                    <td>{{ muayene.hasta }}</td>
-                    <td><a href="{% url 'edit_examination_view' muayene.id %}" style="color: rgb(205, 100, 100); font-weight: bold;">Düzenle</a></td>
+                    <td>
+                        <a href="{% url 'patient_detail_view' muayene.hasta.unique_hasta_id %}" style="color: rgb(205, 100, 100); font-weight: bold;">
+                            {{ muayene.hasta.unique_hasta_id }}
+                        </a>
+                    </td>
+                    <td>{{ muayene.hasta.isim }} {{ muayene.hasta.soyisim }} </td>
+                    <td>
+                        <a href="{% url 'edit_examination_view' muayene.id %}" style="color: rgb(205, 100, 100); font-weight: bold;">
+                            Düzenle
+                        </a>
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
@@ -38,6 +48,7 @@
     {% else %}
         <p>Sonuç bulunamadı.</p>
     {% endif %}
+
 
      <!-- Styling for the table -->
      <style>
