@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Hasta, Muayene, FreeSurferSonuc
 from .forms import MuayeneForm
 import pandas as pd
-from django.db.models import Q
+from django.db.models import Q, Count
 import numpy as np
 from django.http import HttpResponse
 from django.db import models
@@ -674,7 +674,7 @@ def freesurfer_list_view(request):
     filters = {}
     if selected_tani and selected_tani != 'Tüm Tanılar':
         filters['diagnosis'] = selected_tani
-    if selected_hasta_id:
+    if selected_hasta_id and selected_hasta_id != '':
         filters['muayene__hasta__unique_hasta_id'] = selected_hasta_id
 
     freesurfer_sonuclari = FreeSurferSonuc.objects.filter(**filters)
@@ -723,315 +723,63 @@ def freesurfer_list_view(request):
     })
 
 def export_freesurfer_to_excel(request):
+    global selected_columns
+     # Dynamically get all fields from the model
+    all_fields = [field.name for field in FreeSurferSonuc._meta.get_fields()]
+
     selected_tani = request.POST.get('tani') or request.GET.get('tani') or 'Tüm Tanılar'
+    selected_hasta_id = request.POST.get('hasta_id') or request.GET.get('hasta_id') or ''
 
-    if selected_tani != 'Tüm Tanılar':
-        freesurfer_sonuclari = FreeSurferSonuc.objects.filter(diagnosis=selected_tani)
+    filters = {}
+    if selected_tani and selected_tani != 'Tüm Tanılar':
+        filters['diagnosis'] = selected_tani
+    if selected_hasta_id and selected_hasta_id != '':
+        filters['muayene__hasta__unique_hasta_id'] = selected_hasta_id
+
+    freesurfer_sonuclari = FreeSurferSonuc.objects.filter(**filters)
+
+    if selected_columns:
+        # Prepare the selected columns to include in the export
+        columns_to_export = []
+        for column_str in selected_columns:
+            try:
+                # Convert the string to a dictionary
+                column_dict = ast.literal_eval(column_str)
+                if isinstance(column_dict, dict):
+                    field = column_dict.get("field")
+                    if field:
+                        # Get the pretty display name for the field
+                        pretty_name = get_pretty_attribute_name(field)
+                        columns_to_export.append({
+                            'field': field,
+                            'label': pretty_name
+                        })
+            except (SyntaxError, ValueError) as e:
+                print(f"Invalid column string: {column_str} - Error: {e}")
+
+        # Only keep the rows and columns that match the selected columns
+        data = []
+        for sonuc in freesurfer_sonuclari:
+            row = {}
+            for column in columns_to_export:
+                field = column['field']
+                row[column['label']] = getattr(sonuc, field)
+            data.append(row)
     else:
-        freesurfer_sonuclari = FreeSurferSonuc.objects.all()
+        # If no selected columns, export all columns
+        data = []
+        all_fields = [field.name for field in FreeSurferSonuc._meta.get_fields()]
+        for sonuc in freesurfer_sonuclari:
+            row = {}
+            for field in all_fields:
+                pretty_name = get_pretty_attribute_name(field)
+                row[pretty_name] = getattr(sonuc, field)
+            data.append(row)
 
-    # DataFrame oluşturma
-    data = []
-    for sonuc in freesurfer_sonuclari:
-        data.append({
-            'Muayene ID': sonuc.muayene.id,
-            'Hasta ID': sonuc.muayene.hasta.unique_hasta_id,
-            'Tanı': sonuc.diagnosis,
-            'Brain Segmentation Volume': sonuc.brain_seg_vol,
-            'Brain Seg Vol Not Vent': sonuc.brain_seg_vol_not_vent,
-            'Ventricle Choroid Volume': sonuc.ventricle_choroid_vol,
-            'LH Cortex Volume': sonuc.lh_cortex_vol,
-            'RH Cortex Volume': sonuc.rh_cortex_vol,
-            'Cortex Volume': sonuc.cortex_vol,
-            'Left Hemisphere Cerebral White Matter Volume': sonuc.lh_cerebral_white_matter_vol,
-            'Right Hemisphere Cerebral White Matter Volume': sonuc.rh_cerebral_white_matter_vol,
-            'Cerebral White Matter Volume': sonuc.cerebral_white_matter_vol,
-            'Subcortical Gray Matter Volume': sonuc.subcort_gray_vol,
-            'Total Gray Matter Volume': sonuc.total_gray_vol,
-            'Supra Tentorial Volume': sonuc.supra_tentorial_vol,
-            'Supra Tentorial Volume (No Ventricle)': sonuc.supra_tentorial_vol_not_vent,
-            'Mask Volume': sonuc.mask_vol,
-            'Brain Segmentation Volume to eTIV': sonuc.brain_seg_vol_to_etiv,
-            'Mask Volume to eTIV': sonuc.mask_vol_to_etiv,
-            'Left Hemisphere Surface Holes': sonuc.lh_surface_holes,
-            'Right Hemisphere Surface Holes': sonuc.rh_surface_holes,
-            'Surface Holes': sonuc.surface_holes,
-            'Estimated Total Intracranial Volume (eTIV)': sonuc.etiv,
-            'Left Lateral Ventricle Volume (mm3)': sonuc.left_lateral_ventricle_volume_mm3,
-            'Left Lateral Ventricle Norm Mean': sonuc.left_lateral_ventricle_normmean,
-            'Left Lateral Ventricle Norm Std Dev': sonuc.left_lateral_ventricle_normstddev,
-            'Left Lateral Ventricle Norm Min': sonuc.left_lateral_ventricle_normmin,
-            'Left Lateral Ventricle Norm Max': sonuc.left_lateral_ventricle_normmax,
-            'Left Lateral Ventricle Norm Range': sonuc.left_lateral_ventricle_normrange,
-            'Left Inferior Lateral Ventricle Volume (mm3)': sonuc.left_inf_lat_vent_volume_mm3,
-            'Left Inferior Lateral Ventricle Norm Mean': sonuc.left_inf_lat_vent_normmean,
-            'Left Inferior Lateral Ventricle Norm Std Dev': sonuc.left_inf_lat_vent_normstddev,
-            'Left Inferior Lateral Ventricle Norm Min': sonuc.left_inf_lat_vent_normmin,
-            'Left Inferior Lateral Ventricle Norm Max': sonuc.left_inf_lat_vent_normmax,
-            'Left Inferior Lateral Ventricle Norm Range': sonuc.left_inf_lat_vent_normrange,
-            'Left Cerebellum White Matter Volume (mm3)': sonuc.left_cerebellum_white_matter_volume_mm3,
-            'Left Cerebellum White Matter Norm Mean': sonuc.left_cerebellum_white_matter_normmean,
-            'Left Cerebellum White Matter Norm Std Dev': sonuc.left_cerebellum_white_matter_normstddev,
-            'Left Cerebellum White Matter Norm Min': sonuc.left_cerebellum_white_matter_normmin,
-            'Left Cerebellum White Matter Norm Max': sonuc.left_cerebellum_white_matter_normmax,
-            'Left Cerebellum White Matter Norm Range': sonuc.left_cerebellum_white_matter_normrange,
-            'Left Cerebellum Cortex Volume (mm3)': sonuc.left_cerebellum_cortex_volume_mm3,
-            'Left Cerebellum Cortex Norm Mean': sonuc.left_cerebellum_cortex_normmean,
-            'Left Cerebellum Cortex Norm Std Dev': sonuc.left_cerebellum_cortex_normstddev,
-            'Left Cerebellum Cortex Norm Min': sonuc.left_cerebellum_cortex_normmin,
-            'Left Cerebellum Cortex Norm Max': sonuc.left_cerebellum_cortex_normmax,
-            'Left Cerebellum Cortex Norm Range': sonuc.left_cerebellum_cortex_normrange,
-            'Left Thalamus Volume (mm3)': sonuc.left_thalamus_volume_mm3,
-            'Left Thalamus Norm Mean': sonuc.left_thalamus_normmean,
-            'Left Thalamus Norm Std Dev': sonuc.left_thalamus_normstddev,
-            'Left Thalamus Norm Min': sonuc.left_thalamus_normmin,
-            'Left Thalamus Norm Max': sonuc.left_thalamus_normmax,
-            'Left Thalamus Norm Range': sonuc.left_thalamus_normrange,
-            'Left Caudate Volume (mm3)': sonuc.left_caudate_volume_mm3,
-            'Left Caudate Norm Mean': sonuc.left_caudate_normmean,
-            'Left Caudate Norm Std Dev': sonuc.left_caudate_normstddev,
-            'Left Caudate Norm Min': sonuc.left_caudate_normmin,
-            'Left Caudate Norm Max': sonuc.left_caudate_normmax,
-            'Left Caudate Norm Range': sonuc.left_caudate_normrange,
-            'Left Putamen Volume (mm3)': sonuc.left_putamen_volume_mm3,
-            'Left Putamen Norm Mean': sonuc.left_putamen_normmean,
-            'Left Putamen Norm Std Dev': sonuc.left_putamen_normstddev,
-            'Left Putamen Norm Min': sonuc.left_putamen_normmin,
-            'Left Putamen Norm Max': sonuc.left_putamen_normmax,
-            'Left Putamen Norm Range': sonuc.left_putamen_normrange,
-            'Left Pallidum Volume (mm3)': sonuc.left_pallidum_volume_mm3,
-            'Left Pallidum Norm Mean': sonuc.left_pallidum_normmean,
-            'Left Pallidum Norm Std Dev': sonuc.left_pallidum_normstddev,
-            'Left Pallidum Norm Min': sonuc.left_pallidum_normmin,
-            'Left Pallidum Norm Max': sonuc.left_pallidum_normmax,
-            'Left Pallidum Norm Range': sonuc.left_pallidum_normrange,
-            '3rd Ventricle Volume (mm3)': sonuc.the3rd_ventricle_volume_mm3,
-            '3rd Ventricle Norm Mean': sonuc.the3rd_ventricle_normmean,
-            '3rd Ventricle Norm Std Dev': sonuc.the3rd_ventricle_normstddev,
-            '3rd Ventricle Norm Min': sonuc.the3rd_ventricle_normmin,
-            '3rd Ventricle Norm Max': sonuc.the3rd_ventricle_normmax,
-            '3rd Ventricle Norm Range': sonuc.the3rd_ventricle_normrange,
-            '4th Ventricle Volume (mm3)': sonuc.the4th_ventricle_volume_mm3,
-            '4th Ventricle Norm Mean': sonuc.the4th_ventricle_normmean,
-            '4th Ventricle Norm Std Dev': sonuc.the4th_ventricle_normstddev,
-            '4th Ventricle Norm Min': sonuc.the4th_ventricle_normmin,
-            '4th Ventricle Norm Max': sonuc.the4th_ventricle_normmax,
-            '4th Ventricle Norm Range': sonuc.the4th_ventricle_normrange,
-            'Brain Stem Volume (mm3)': sonuc.brain_stem_volume_mm3,
-            'Brain Stem Norm Mean': sonuc.brain_stem_normmean,
-            'Brain Stem Norm Std Dev': sonuc.brain_stem_normstddev,
-            'Brain Stem Norm Min': sonuc.brain_stem_normmin,
-            'Brain Stem Norm Max': sonuc.brain_stem_normmax,
-            'Brain Stem Norm Range': sonuc.brain_stem_normrange,
-            'Left Hippocampus Volume (mm3)': sonuc.left_hippocampus_volume_mm3,
-            'Left Hippocampus Norm Mean': sonuc.left_hippocampus_normmean,
-            'Left Hippocampus Norm Std Dev': sonuc.left_hippocampus_normstddev,
-            'Left Hippocampus Norm Min': sonuc.left_hippocampus_normmin,
-            'Left Hippocampus Norm Max': sonuc.left_hippocampus_normmax,
-            'Left Hippocampus Norm Range': sonuc.left_hippocampus_normrange,
-            'Left Amygdala Volume (mm3)': sonuc.left_amygdala_volume_mm3,
-            'Left Amygdala Norm Mean': sonuc.left_amygdala_normmean,
-            'Left Amygdala Norm Std Dev': sonuc.left_amygdala_normstddev,
-            'Left Amygdala Norm Min': sonuc.left_amygdala_normmin,
-            'Left Amygdala Norm Max': sonuc.left_amygdala_normmax,
-            'Left Amygdala Norm Range': sonuc.left_amygdala_normrange,
-            'CSF Volume (mm3)': sonuc.csf_volume_mm3,
-            'CSF Norm Mean': sonuc.csf_normmean,
-            'CSF Norm Std Dev': sonuc.csf_normstddev,
-            'CSF Norm Min': sonuc.csf_normmin,
-            'CSF Norm Max': sonuc.csf_normmax,
-            'CSF Norm Range': sonuc.csf_normrange,
-            'Left Accumbens Area Volume (mm3)': sonuc.left_accumbens_area_volume_mm3,
-            'Left Accumbens Area Norm Mean': sonuc.left_accumbens_area_normmean,
-            'Left Accumbens Area Norm Std Dev': sonuc.left_accumbens_area_normstddev,
-            'Left Accumbens Area Norm Min': sonuc.left_accumbens_area_normmin,
-            'Left Accumbens Area Norm Max': sonuc.left_accumbens_area_normmax,
-            'Left Accumbens Area Norm Range': sonuc.left_accumbens_area_normrange,
-            'Left Ventral DC Volume (mm3)': sonuc.left_ventraldc_volume_mm3,
-            'Left Ventral DC Norm Mean': sonuc.left_ventraldc_normmean,
-            'Left Ventral DC Norm Std Dev': sonuc.left_ventraldc_normstddev,
-            'Left Ventral DC Norm Min': sonuc.left_ventraldc_normmin,
-            'Left Ventral DC Norm Max': sonuc.left_ventraldc_normmax,
-            'Left Ventral DC Norm Range': sonuc.left_ventraldc_normrange,
-            'Left Vessel Volume (mm3)': sonuc.left_vessel_volume_mm3,
-            'Left Vessel Norm Mean': sonuc.left_vessel_normmean,
-            'Left Vessel Norm Std Dev': sonuc.left_vessel_normstddev,
-            'Left Vessel Norm Min': sonuc.left_vessel_normmin,
-            'Left Vessel Norm Max': sonuc.left_vessel_normmax,
-            'Left Vessel Norm Range': sonuc.left_vessel_normrange,
-            'Left Choroid Plexus Volume (mm3)': sonuc.left_choroid_plexus_volume_mm3,
-            'Left Choroid Plexus Norm Mean': sonuc.left_choroid_plexus_normmean,
-            'Left Choroid Plexus Norm Std Dev': sonuc.left_choroid_plexus_normstddev,
-            'Left Choroid Plexus Norm Min': sonuc.left_choroid_plexus_normmin,
-            'Left Choroid Plexus Norm Max': sonuc.left_choroid_plexus_normmax,
-            'Left Choroid Plexus Norm Range': sonuc.left_choroid_plexus_normrange,
-            'Right Lateral Ventricle Volume (mm3)': sonuc.right_lateral_ventricle_volume_mm3,
-            'Right Lateral Ventricle Norm Mean': sonuc.right_lateral_ventricle_normmean,
-            'Right Lateral Ventricle Norm Std Dev': sonuc.right_lateral_ventricle_normstddev,
-            'Right Lateral Ventricle Norm Min': sonuc.right_lateral_ventricle_normmin,
-            'Right Lateral Ventricle Norm Max': sonuc.right_lateral_ventricle_normmax,
-            'Right Lateral Ventricle Norm Range': sonuc.right_lateral_ventricle_normrange,
-            'Right Inferior Lateral Ventricle Volume (mm3)': sonuc.right_inf_lat_vent_volume_mm3,
-            'Right Inferior Lateral Ventricle Norm Mean': sonuc.right_inf_lat_vent_normmean,
-            'Right Inferior Lateral Ventricle Norm Std Dev': sonuc.right_inf_lat_vent_normstddev,
-            'Right Inferior Lateral Ventricle Norm Min': sonuc.right_inf_lat_vent_normmin,
-            'Right Inferior Lateral Ventricle Norm Max': sonuc.right_inf_lat_vent_normmax,
-            'Right Inferior Lateral Ventricle Norm Range': sonuc.right_inf_lat_vent_normrange,
-            'Right Cerebellum White Matter Volume (mm3)': sonuc.right_cerebellum_white_matter_volume_mm3,
-            'Right Cerebellum White Matter Norm Mean': sonuc.right_cerebellum_white_matter_normmean,
-            'Right Cerebellum White Matter Norm Std Dev': sonuc.right_cerebellum_white_matter_normstddev,
-            'Right Cerebellum White Matter Norm Min': sonuc.right_cerebellum_white_matter_normmin,
-            'Right Cerebellum White Matter Norm Max': sonuc.right_cerebellum_white_matter_normmax,
-            'Right Cerebellum White Matter Norm Range': sonuc.right_cerebellum_white_matter_normrange,
-            'Right Cerebellum Cortex Volume (mm3)': sonuc.right_cerebellum_cortex_volume_mm3,
-            'Right Cerebellum Cortex Norm Mean': sonuc.right_cerebellum_cortex_normmean,
-            'Right Cerebellum Cortex Norm Std Dev': sonuc.right_cerebellum_cortex_normstddev,
-            'Right Cerebellum Cortex Norm Min': sonuc.right_cerebellum_cortex_normmin,
-            'Right Cerebellum Cortex Norm Max': sonuc.right_cerebellum_cortex_normmax,
-            'Right Cerebellum Cortex Norm Range': sonuc.right_cerebellum_cortex_normrange,
-            'Right Thalamus Volume (mm3)': sonuc.right_thalamus_volume_mm3,
-            'Right Thalamus Norm Mean': sonuc.right_thalamus_normmean,
-            'Right Thalamus Norm Std Dev': sonuc.right_thalamus_normstddev,
-            'Right Thalamus Norm Min': sonuc.right_thalamus_normmin,
-            'Right Thalamus Norm Max': sonuc.right_thalamus_normmax,
-            'Right Thalamus Norm Range': sonuc.right_thalamus_normrange,
-            'Right Caudate Volume (mm3)': sonuc.right_caudate_volume_mm3,
-            'Right Caudate Norm Mean': sonuc.right_caudate_normmean,
-            'Right Caudate Norm Std Dev': sonuc.right_caudate_normstddev,
-            'Right Caudate Norm Min': sonuc.right_caudate_normmin,
-            'Right Caudate Norm Max': sonuc.right_caudate_normmax,
-            'Right Caudate Norm Range': sonuc.right_caudate_normrange,
-            'Right Putamen Volume (mm3)': sonuc.right_putamen_volume_mm3,
-            'Right Putamen Norm Mean': sonuc.right_putamen_normmean,
-            'Right Putamen Norm Std Dev': sonuc.right_putamen_normstddev,
-            'Right Putamen Norm Min': sonuc.right_putamen_normmin,
-            'Right Putamen Norm Max': sonuc.right_putamen_normmax,
-            'Right Putamen Norm Range': sonuc.right_putamen_normrange,
-            'Right Pallidum Volume (mm3)': sonuc.right_pallidum_volume_mm3,
-            'Right Pallidum Norm Mean': sonuc.right_pallidum_normmean,
-            'Right Pallidum Norm Std Dev': sonuc.right_pallidum_normstddev,
-            'Right Pallidum Norm Min': sonuc.right_pallidum_normmin,
-            'Right Pallidum Norm Max': sonuc.right_pallidum_normmax,
-            'Right Pallidum Norm Range': sonuc.right_pallidum_normrange,
-            'Right Hippocampus Volume (mm3)': sonuc.right_hippocampus_volume_mm3,
-            'Right Hippocampus Norm Mean': sonuc.right_hippocampus_normmean,
-            'Right Hippocampus Norm Std Dev': sonuc.right_hippocampus_normstddev,
-            'Right Hippocampus Norm Min': sonuc.right_hippocampus_normmin,
-            'Right Hippocampus Norm Max': sonuc.right_hippocampus_normmax,
-            'Right Hippocampus Norm Range': sonuc.right_hippocampus_normrange,
-            'Right Amygdala Volume (mm3)': sonuc.right_amygdala_volume_mm3,
-            'Right Amygdala Norm Mean': sonuc.right_amygdala_normmean,
-            'Right Amygdala Norm Std Dev': sonuc.right_amygdala_normstddev,
-            'Right Amygdala Norm Min': sonuc.right_amygdala_normmin,
-            'Right Amygdala Norm Max': sonuc.right_amygdala_normmax,
-            'Right Amygdala Norm Range': sonuc.right_amygdala_normrange,
-            'Right Accumbens Area Volume (mm3)': sonuc.right_accumbens_area_volume_mm3,
-            'Right Accumbens Area Norm Mean': sonuc.right_accumbens_area_normmean,
-            'Right Accumbens Area Norm Std Dev': sonuc.right_accumbens_area_normstddev,
-            'Right Accumbens Area Norm Min': sonuc.right_accumbens_area_normmin,
-            'Right Accumbens Area Norm Max': sonuc.right_accumbens_area_normmax,
-            'Right Accumbens Area Norm Range': sonuc.right_accumbens_area_normrange,
-            'Right Ventral DC Volume (mm3)': sonuc.right_ventraldc_volume_mm3,
-            'Right Ventral DC Norm Mean': sonuc.right_ventraldc_normmean,
-            'Right Ventral DC Norm Std Dev': sonuc.right_ventraldc_normstddev,
-            'Right Ventral DC Norm Min': sonuc.right_ventraldc_normmin,
-            'Right Ventral DC Norm Max': sonuc.right_ventraldc_normmax,
-            'Right Ventral DC Norm Range': sonuc.right_ventraldc_normrange,
-            'Right Vessel Volume (mm3)': sonuc.right_vessel_volume_mm3,
-            'Right Vessel Norm Mean': sonuc.right_vessel_normmean,
-            'Right Vessel Norm Std Dev': sonuc.right_vessel_normstddev,
-            'Right Vessel Norm Min': sonuc.right_vessel_normmin,
-            'Right Vessel Norm Max': sonuc.right_vessel_normmax,
-            'Right Vessel Norm Range': sonuc.right_vessel_normrange,
-            'Right Choroid Plexus Volume (mm3)': sonuc.right_choroid_plexus_volume_mm3,
-            'Right Choroid Plexus Norm Mean': sonuc.right_choroid_plexus_normmean,
-            'Right Choroid Plexus Norm Std Dev': sonuc.right_choroid_plexus_normstddev,
-            'Right Choroid Plexus Norm Min': sonuc.right_choroid_plexus_normmin,
-            'Right Choroid Plexus Norm Max': sonuc.right_choroid_plexus_normmax,
-            'Right Choroid Plexus Norm Range': sonuc.right_choroid_plexus_normrange,
-            '5th Ventricle Volume (mm3)': sonuc.the5th_ventricle_volume_mm3,
-            '5th Ventricle Norm Mean': sonuc.the5th_ventricle_normmean,
-            '5th Ventricle Norm Std Dev': sonuc.the5th_ventricle_normstddev,
-            '5th Ventricle Norm Min': sonuc.the5th_ventricle_normmin,
-            '5th Ventricle Norm Max': sonuc.the5th_ventricle_normmax,
-            '5th Ventricle Norm Range': sonuc.the5th_ventricle_normrange,
-            'WM Hypointensities Volume (mm3)': sonuc.wm_hypointensities_volume_mm3,
-            'WM Hypointensities Norm Mean': sonuc.wm_hypointensities_normmean,
-            'WM Hypointensities Norm Std Dev': sonuc.wm_hypointensities_normstddev,
-            'WM Hypointensities Norm Min': sonuc.wm_hypointensities_normmin,
-            'WM Hypointensities Norm Max': sonuc.wm_hypointensities_normmax,
-            'WM Hypointensities Norm Range': sonuc.wm_hypointensities_normrange,
-            'Left WM Hypointensities Volume (mm3)': sonuc.left_wm_hypointensities_volume_mm3,
-            'Left WM Hypointensities Norm Mean': sonuc.left_wm_hypointensities_normmean,
-            'Left WM Hypointensities Norm Std Dev': sonuc.left_wm_hypointensities_normstddev,
-            'Left WM Hypointensities Norm Min': sonuc.left_wm_hypointensities_normmin,
-            'Left WM Hypointensities Norm Max': sonuc.left_wm_hypointensities_normmax,
-            'Left WM Hypointensities Norm Range': sonuc.left_wm_hypointensities_normrange,
-            'Right WM Hypointensities Volume (mm3)': sonuc.right_wm_hypointensities_volume_mm3,
-            'Right WM Hypointensities Norm Mean': sonuc.right_wm_hypointensities_normmean,
-            'Right WM Hypointensities Norm Std Dev': sonuc.right_wm_hypointensities_normstddev,
-            'Right WM Hypointensities Norm Min': sonuc.right_wm_hypointensities_normmin,
-            'Right WM Hypointensities Norm Max': sonuc.right_wm_hypointensities_normmax,
-            'Right WM Hypointensities Norm Range': sonuc.right_wm_hypointensities_normrange,
-            'Non-WM Hypointensities Volume (mm3)': sonuc.non_wm_hypointensities_volume_mm3,
-            'Non-WM Hypointensities Norm Mean': sonuc.non_wm_hypointensities_normmean,
-            'Non-WM Hypointensities Norm Std Dev': sonuc.non_wm_hypointensities_normstddev,
-            'Non-WM Hypointensities Norm Min': sonuc.non_wm_hypointensities_normmin,
-            'Non-WM Hypointensities Norm Max': sonuc.non_wm_hypointensities_normmax,
-            'Non-WM Hypointensities Norm Range': sonuc.non_wm_hypointensities_normrange,
-            'Left Non-WM Hypointensities Volume (mm3)': sonuc.left_non_wm_hypointensities_volume_mm3,
-            'Left Non-WM Hypointensities Norm Mean': sonuc.left_non_wm_hypointensities_normmean,
-            'Left Non-WM Hypointensities Norm Std Dev': sonuc.left_non_wm_hypointensities_normstddev,
-            'Left Non-WM Hypointensities Norm Min': sonuc.left_non_wm_hypointensities_normmin,
-            'Left Non-WM Hypointensities Norm Max': sonuc.left_non_wm_hypointensities_normmax,
-            'Left Non-WM Hypointensities Norm Range': sonuc.left_non_wm_hypointensities_normrange,
-            'Right Non-WM Hypointensities Volume (mm3)': sonuc.right_non_wm_hypointensities_volume_mm3,
-            'Right Non-WM Hypointensities Norm Mean': sonuc.right_non_wm_hypointensities_normmean,
-            'Right Non-WM Hypointensities Norm Std Dev': sonuc.right_non_wm_hypointensities_normstddev,
-            'Right Non-WM Hypointensities Norm Min': sonuc.right_non_wm_hypointensities_normmin,
-            'Right Non-WM Hypointensities Norm Max': sonuc.right_non_wm_hypointensities_normmax,
-            'Right Non-WM Hypointensities Norm Range': sonuc.right_non_wm_hypointensities_normrange,
-            'Optic Chiasm Volume (mm3)': sonuc.optic_chiasm_volume_mm3,
-            'Optic Chiasm Norm Mean': sonuc.optic_chiasm_normmean,
-            'Optic Chiasm Norm Std Dev': sonuc.optic_chiasm_normstddev,
-            'Optic Chiasm Norm Min': sonuc.optic_chiasm_normmin,
-            'Optic Chiasm Norm Max': sonuc.optic_chiasm_normmax,
-            'Optic Chiasm Norm Range': sonuc.optic_chiasm_normrange,
-            'CC Posterior Volume (mm3)': sonuc.cc_posterior_volume_mm3,
-            'CC Posterior Norm Mean': sonuc.cc_posterior_normmean,
-            'CC Posterior Norm Std Dev': sonuc.cc_posterior_normstddev,
-            'CC Posterior Norm Min': sonuc.cc_posterior_normmin,
-            'CC Posterior Norm Max': sonuc.cc_posterior_normmax,
-            'CC Posterior Norm Range': sonuc.cc_posterior_normrange,
-            'CC Mid Posterior Volume (mm3)': sonuc.cc_mid_posterior_volume_mm3,
-            'CC Mid Posterior Norm Mean': sonuc.cc_mid_posterior_normmean,
-            'CC Mid Posterior Norm Std Dev': sonuc.cc_mid_posterior_normstddev,
-            'CC Mid Posterior Norm Min': sonuc.cc_mid_posterior_normmin,
-            'CC Mid Posterior Norm Max': sonuc.cc_mid_posterior_normmax,
-            'CC Mid Posterior Norm Range': sonuc.cc_mid_posterior_normrange,
-            'CC Central Volume (mm3)': sonuc.cc_central_volume_mm3,
-            'CC Central Norm Mean': sonuc.cc_central_normmean,
-            'CC Central Norm Std Dev': sonuc.cc_central_normstddev,
-            'CC Central Norm Min': sonuc.cc_central_normmin,
-            'CC Central Norm Max': sonuc.cc_central_normmax,
-            'CC Central Norm Range': sonuc.cc_central_normrange,
-            'CC Mid Anterior Volume (mm3)': sonuc.cc_mid_anterior_volume_mm3,
-            'CC Mid Anterior Norm Mean': sonuc.cc_mid_anterior_normmean,
-            'CC Mid Anterior Norm Std Dev': sonuc.cc_mid_anterior_normstddev,
-            'CC Mid Anterior Norm Min': sonuc.cc_mid_anterior_normmin,
-            'CC Mid Anterior Norm Max': sonuc.cc_mid_anterior_normmax,
-            'CC Mid Anterior Norm Range': sonuc.cc_mid_anterior_normrange,
-            'CC Anterior Volume (mm3)': sonuc.cc_anterior_volume_mm3,
-            'CC Anterior Norm Mean': sonuc.cc_anterior_normmean,
-            'CC Anterior Norm Std Dev': sonuc.cc_anterior_normstddev,
-            'CC Anterior Norm Min': sonuc.cc_anterior_normmin,
-            'CC Anterior Norm Max': sonuc.cc_anterior_normmax,
-            'CC Anterior Norm Range': sonuc.cc_anterior_normrange
-        })
-
+    # Create a DataFrame for the data
     df = pd.DataFrame(data)
 
-    # Excel dosyasına yazdır
+    # Create an Excel response
     response = HttpResponse(content_type='application/vnd.ms-excel')
     response['Content-Disposition'] = 'attachment; filename="freesurfer_sonuclari.xlsx"'
     df.to_excel(response, index=False)
@@ -1132,3 +880,51 @@ def patient_detail_view(request, patient_id):
     hasta = get_object_or_404(Hasta, unique_hasta_id=patient_id)
     muayeneler = Muayene.objects.filter(hasta=hasta)
     return render(request, 'patient_detail_view.html', {'hasta': hasta , 'muayeneler': muayeneler})
+
+def data_report_view(request):
+    # Gender distribution data
+    gender_data = Hasta.objects.values('cinsiyet').annotate(count=Count('cinsiyet'))
+    gender_labels = [item['cinsiyet'] for item in gender_data]
+    gender_counts = [item['count'] for item in gender_data]
+
+    # Age distribution data (assuming an 'yas' field in Hasta model)
+    age_bins = range(0, 100, 10)  # Define age bins (e.g., 0-9, 10-19, ...)
+    age_labels = [f"{bin}-{bin + 9}" for bin in age_bins]
+    age_counts = [
+        Hasta.objects.filter(Q(yas__gte=bin) & Q(yas__lt=bin + 10)).count()
+        for bin in age_bins
+    ]
+
+    tanilar = FreeSurferSonuc.objects.values('diagnosis').annotate(count=models.Count('diagnosis')).order_by('diagnosis')
+
+    # Tanıların adları ve sayıları
+    diagnosis_labels = [t['diagnosis'] for t in tanilar]
+    diagnosis_counts = [t['count'] for t in tanilar]
+
+    # Count of patients with MRI data
+    patients_with_mri = Hasta.objects.filter(
+        muayene__mri_tarihi__isnull=False
+    ).distinct().count()
+
+    # Count patients with PET data
+    patients_with_pet = Hasta.objects.filter(
+        muayene__pet1__isnull=False
+    ).distinct().count()
+
+    # Count patients without MRI data
+    total_patients = Hasta.objects.count()
+    patients_without_mri = total_patients - patients_with_mri
+    patients_without_pet = total_patients - patients_with_pet
+
+    return render(request, 'data_report.html', {
+        'gender_labels': gender_labels,
+        'gender_counts': gender_counts,
+        'age_labels': age_labels,
+        'age_counts': age_counts,
+        'diagnosis_labels': diagnosis_labels,
+        'diagnosis_counts': diagnosis_counts,
+        'mri_labels': ['MRI Verisi var', 'MRI Verisi yok'],
+        'mri_counts': [patients_with_mri, patients_without_mri],
+        'pet_labels': ['PET Verisi var', 'PET Verisi yok'],
+        'pet_counts': [patients_with_pet, patients_without_pet]
+    })

@@ -4,103 +4,8 @@
 {% block title %}Tüm FreeSurfer Sonuçları{% endblock %}
 
 {% block content %}
-    <div class="dashboard-content">
-        <h2>Tüm FreeSurfer Sonuçları</h2>
 
-        <form method="GET" action="{% url 'freesurfer_list' %}">
-            <label for="tani">Tanıya Göre Filtrele:</label>
-            <select name="tani" id="tani">
-                <option value="">Tüm Tanılar</option>
-                {% for tani in tanilar %}
-                    <option value="{{ tani }}" {% if tani == selected_tani %} selected {% endif %}>{{ tani }}</option>
-                {% endfor %}
-            </select>
-        
-            {% include 'components/numberinput.html' with id='hasta_id' label='Hasta ID\'ye Göre Filtrele:' name='hasta_id' value=request.GET.hasta_id placeholder='Hasta ID girin' min='1' style_class='form-control' %}
-
-            <label for="columns">Sütun Seçimi:</label>
-            <select name="columns" id="columns" multiple="multiple" size="10">
-                {% for column in static_columns %}
-                    {% if column.field != 'muayene' and column.field != 'id' %}
-                        <option value="{{ column }}" {% if column in selected_columns %} selected {% endif %}>
-                            {{ column.label }}
-                        </option>
-                    {% endif %}
-                {% endfor %}
-            </select>
-
-        
-            {% include 'components/submitbutton.html' with label='Filtrele' %}
-            {% include 'components/cancelbutton.html' with label='Filtreleri İptal Et' %}
-        </form>
-        
-
-        <form method="GET" action="{% url 'export_excel' %}">
-            <input type="hidden" name="tani" value="{{ selected_tani }}">
-            <button type="submit" class="btn-download">Tabloyu İndir</button>
-        </form>
-
-        {% if freesurfer_sonuclari %}
-            <div class="table-container">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            {% for column in columns %}
-                                <th>{{ column.label }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for sonuc in freesurfer_sonuclari %}
-                            <tr>
-                                {% for column in columns %}
-                                    {% if column.field == 'muayene' %}
-                                        <td>{{ sonuc.muayene.hasta.unique_hasta_id }}</td>  {# Only show Hasta ID for the muayene column #}
-                                    {% else %}
-                                        <td>{{ sonuc|get_attr:column.field }}</td>
-                                    {% endif %}
-                                {% endfor %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p>Henüz kayıtlı FreeSurfer sonucu yok.</p>
-        {% endif %}
-        {% if freesurfer_sonuclari %}
-            <form method="POST" action="{% url 'freesurfer_list' %}">
-                {% csrf_token %}
-                <input type="hidden" name="tani" value="{{ selected_tani }}">
-                {% include 'components/submitbutton.html' with label='Tüm Tablo için Hesapla' %}
-            </form>
-
-            {% if statistics %}
-                <div class="table2-container">
-                    <table class="table table-bordered statistics-table">
-                        <thead>
-                            <tr>
-                                <th>Attribute</th>
-                                <th>Ortalama</th>
-                                <th>Standart Sapma</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for attribute, stats in statistics.items %}
-                                <tr>
-                                    <td>{{ attribute }}</td>
-                                    <td>{{ stats.mean }}</td>
-                                    <td>{{ stats.stddev }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endif %}
-        {% endif %} 
-    </div>
-
-    <!-- Styling for the table -->
+<!-- Styling for the table -->
     <style>
         /* Dropdown Label */
         form label {
@@ -246,4 +151,100 @@
             left: 81px;
         }
     </style>
+    <div class="dashboard-content">
+        <h2>Tüm FreeSurfer Sonuçları</h2>
+
+        <form method="GET" action="{% url 'freesurfer_list' %}">
+            <label for="tani">Tanıya Göre Filtrele:</label>
+            <select name="tani" id="tani">
+                <option value="">Tüm Tanılar</option>
+                {% for tani in tanilar %}
+                    <option value="{{ tani }}" {% if tani == selected_tani %} selected {% endif %}>{{ tani }}</option>
+                {% endfor %}
+            </select>
+        
+            {% include 'components/numberinput.html' with id='hasta_id' label='Hasta ID\'ye Göre Filtrele:' name='hasta_id' value=request.GET.hasta_id placeholder='Hasta ID girin' min='1' style_class='form-control' %}
+
+            <label for="columns">Sütun Seçimi:</label>
+            <select name="columns" id="columns" multiple="multiple" size="10">
+                {% for column in static_columns %}
+                    {% if column.field != 'muayene' and column.field != 'id' %}
+                        <option value="{{ column }}" {% if column in selected_columns %} selected {% endif %}>
+                            {{ column.label }}
+                        </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+
+        
+            {% include 'components/submitbutton.html' with label='Filtrele' %}
+            {% include 'components/cancelbutton.html' with label='Filtreleri İptal Et' %}
+        </form>
+        
+
+        <form method="GET" action="{% url 'export_excel' %}">
+            <input type="hidden" name="tani" value="{{ selected_tani }}">
+            <input type="hidden" name="hasta_id" value="{{ hasta_id }}">
+            <button type="submit" class="btn-download">Tabloyu İndir</button>
+        </form>
+
+        {% if freesurfer_sonuclari %}
+            <div class="table-container">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            {% for column in columns %}
+                                <th>{{ column.label }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sonuc in freesurfer_sonuclari %}
+                            <tr>
+                                {% for column in columns %}
+                                    {% if column.field == 'muayene' %}
+                                        <td>{{ sonuc.muayene.hasta.unique_hasta_id }}</td>  {# Only show Hasta ID for the muayene column #}
+                                    {% else %}
+                                        <td>{{ sonuc|get_attr:column.field }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>Henüz kayıtlı FreeSurfer sonucu yok.</p>
+        {% endif %}
+        {% if freesurfer_sonuclari %}
+            <form method="POST" action="{% url 'freesurfer_list' %}">
+                {% csrf_token %}
+                <input type="hidden" name="tani" value="{{ selected_tani }}">
+                {% include 'components/submitbutton.html' with label='Tüm Tablo için Hesapla' %}
+            </form>
+
+            {% if statistics %}
+                <div class="table2-container">
+                    <table class="table table-bordered statistics-table">
+                        <thead>
+                            <tr>
+                                <th>Attribute</th>
+                                <th>Ortalama</th>
+                                <th>Standart Sapma</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attribute, stats in statistics.items %}
+                                <tr>
+                                    <td>{{ attribute }}</td>
+                                    <td>{{ stats.mean }}</td>
+                                    <td>{{ stats.stddev }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        {% endif %} 
+    </div>
 {% endblock %}
