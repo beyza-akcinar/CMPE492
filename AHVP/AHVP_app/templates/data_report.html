@@ -2,9 +2,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Data Reporting and Visualization</h2>
+    <h2>Hasta Veri Dağılımları</h2>
     <div class="dashboard-content" style="display: flex; flex-wrap: wrap; gap: 20px;">
-
         <!-- Gender Distribution Container -->
         <div class="chart-container" style="width: 180px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: white;">
             <h3>Hasta Cinsiyet Dağılımı</h3>
@@ -13,13 +12,13 @@
 
         <!-- Age Distribution Container -->
         <div class="chart-container" style="width: 140px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color:white;">
-            <h3 style="margin-bottom: 45px;">Hasta Yaş Dağılımı</h3>
+            <h3 style="margin-bottom: 70px;">Hasta Yaş Dağılımı</h3>
             <canvas id="ageChart"></canvas>
         </div>
 
         <!-- Diagnosis Distribution Container -->
         <div class="chart-container" style="width: 140px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color:white;">
-            <h3 style="margin-bottom: 45px;">Hasta Tanı Dağılımı</h3>
+            <h3>Hasta Tanı Dağılımı</h3>
             <canvas id="diagnosisChart"></canvas>
         </div>
 
