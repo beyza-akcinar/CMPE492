@@ -1,0 +1,228 @@
+<!-- report.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Data Reporting and Visualization</h2>
+    <div class="dashboard-content" style="display: flex; flex-wrap: wrap; gap: 20px;">
+
+        <!-- Gender Distribution Container -->
+        <div class="chart-container" style="width: 180px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: white;">
+            <h3>Hasta Cinsiyet Dağılımı</h3>
+            <canvas id="genderChart"></canvas>
+        </div>
+
+        <!-- Age Distribution Container -->
+        <div class="chart-container" style="width: 140px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color:white;">
+            <h3 style="margin-bottom: 45px;">Hasta Yaş Dağılımı</h3>
+            <canvas id="ageChart"></canvas>
+        </div>
+
+        <!-- Diagnosis Distribution Container -->
+        <div class="chart-container" style="width: 140px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color:white;">
+            <h3 style="margin-bottom: 45px;">Hasta Tanı Dağılımı</h3>
+            <canvas id="diagnosisChart"></canvas>
+        </div>
+
+        <div class="chart-container" style="width: 140px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: white;">
+            <h3>Hasta MRI Veri Dağılımı</h3>
+            <canvas id="mriChart"></canvas>
+        </div>
+
+        <div class="chart-container" style="width: 140px; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: white;">
+            <h3>Hasta PET Verisi Dağılımı</h3>
+            <canvas id="petChart"></canvas>
+        </div>
+    </div>
+
+
+
+    <script>
+        // Gender Pie Chart
+        const genderCtx = document.getElementById('genderChart').getContext('2d');
+        const genderData = {
+            labels: {{ gender_labels|safe }},
+            datasets: [{
+                data: {{ gender_counts|safe }},
+                backgroundColor: ['#80c4ff', '#ffcccc'],
+                borderColor: ['#66a3e0', '#e08080'],
+                borderWidth: 1
+            }]
+        };
+        const genderChart = new Chart(genderCtx, {
+            type: 'pie',
+            data: genderData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                layout: {
+                    padding: 10 // Add padding around the chart to make it appear smaller
+                },
+                radius: '70%', // Adjust the radius to control pie size (default is 100%)
+                aspectRatio: 1.5
+            }
+        });
+
+
+        // Age Histogram
+        const ageCtx = document.getElementById('ageChart').getContext('2d');
+        const ageData = {
+            labels: {{ age_labels|safe }},
+            datasets: [{
+                label: 'Age Distribution',
+                data: {{ age_counts|safe }},
+                backgroundColor: '#66b3ff',
+                borderColor: '#66b3ff',
+                borderWidth: 1
+            }]
+        };
+        const ageChart = new Chart(ageCtx, {
+            type: 'bar',
+            data: ageData,
+            options: {
+                responsive: true,
+                aspectRatio: 2.5,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Yaş Grupları'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Sayı'
+                        },
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1 // Y ekseninde 1'er 1'er artış sağlar
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Diagnosis Pie Chart
+        const diagnosisCtx = document.getElementById('diagnosisChart').getContext('2d');
+        const diagnosisChart = new Chart(diagnosisCtx, {
+            type: 'pie',
+            data: {
+                labels: {{ diagnosis_labels|safe }},
+                datasets: [{
+                    data: {{ diagnosis_counts|safe }},
+                    backgroundColor: [
+                        '#ff8080', '#e6b3ff', '#99e699', '#80b3ff', '#ffcc66', '#f27999',
+                        '#9966cc', '#ccccff', '#ff9966', '#e680ff', '#b3b3b3', '#80bfff',
+                        '#d699ff', '#8099cc', '#ffcc33'
+                    ], 
+                    borderColor: [
+                        '#ff6666', '#e699ff', '#66cc66', '#6699ff', '#ffb34d', '#e65c75',
+                        '#7a4fa0', '#9999ff', '#ff804d', '#e14be6', '#999999', '#66a3e6',
+                        '#b266d9', '#6680b3', '#e6b31a'
+                    ],
+
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                layout: {
+                    padding: 10 // Add padding around the chart to make it appear smaller
+                },
+                radius: '90%', // Adjust the radius to control pie size (default is 100%)
+                aspectRatio: 1.5
+            }
+        });
+
+        // MRI Data Availability Pie Chart
+        const mriCtx = document.getElementById('mriChart').getContext('2d');
+        const mriData = {
+            labels: {{ mri_labels|safe }},
+            datasets: [{
+                data: {{ mri_counts|safe }},
+                backgroundColor: ['#80c4ff', '#ffcccc'],
+                borderColor: ['#66a3e0', '#e08080'],
+                borderWidth: 1
+            }]
+        };
+        const mriChart = new Chart(mriCtx, {
+            type: 'pie',
+            data: mriData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                layout: {
+                    padding: 10
+                },
+                radius: '75%',
+                aspectRatio: 1.5
+            }
+        });
+
+        // PET Data Availability Pie Chart
+        const petCtx = document.getElementById('petChart').getContext('2d');
+        const petData = {
+            labels: {{ pet_labels|safe }},
+            datasets: [{
+                data: {{ pet_counts|safe }},
+                backgroundColor: ['#80c4ff', '#ffcccc'],
+                borderColor: ['#66a3e0', '#e08080'],
+                borderWidth: 1
+            }]
+        };
+        const petChart = new Chart(petCtx, {
+            type: 'pie',
+            data: petData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                layout: {
+                    padding: 10
+                },
+                radius: '75%',
+                aspectRatio: 1.5
+            }
+        });
+
+    </script>
+
+    <style>
+        .chart-container {
+            flex: 0 1 calc(47% - 20px); /* Two containers per row with 20px gap */
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chart-container h3 {
+            text-align: center; /* Başlığı yatayda ortalar */
+            margin-bottom: 10px; /* Başlık ve grafiğin arasına boşluk ekler */
+        }
+    </style>
+{% endblock %}

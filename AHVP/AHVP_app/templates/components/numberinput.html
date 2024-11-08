@@ -1,5 +1,6 @@
 <div class="form-group">
     <label for="{{ id }}">{{ label }}</label>
     <input type="number" id="{{ id }}" name="{{ name }}" class="{{ style_class }}" 
-           min="{{ min }}" max="{{ max }}" placeholder="{{ placeholder }}">
+           min="{{ min }}" max="{{ max }}" placeholder="{{ placeholder }}"
+           value="{{ value|default:'' }}">
 </div>
