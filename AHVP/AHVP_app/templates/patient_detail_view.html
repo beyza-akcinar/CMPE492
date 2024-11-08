@@ -24,10 +24,18 @@
         <table>
             <tr>
                 <th>Muayene ID</th>
+                <th>Önceki muayene ile aradaki süre</th>
+                <th>Düzenle</th>
             </tr>
             {% for muayene in muayeneler %}
             <tr>
                 <td>{{ muayene.id }}</td>
+                <td></td>
+                <td>
+                    <a href="{% url 'edit_examination_view' muayene.id %}" style="color: rgb(205, 100, 100); font-weight: bold;">
+                        Düzenle
+                    </a>
+                </td>
             </tr>
             {% endfor %}
         </table>
