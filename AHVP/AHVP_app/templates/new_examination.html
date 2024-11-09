@@ -14,7 +14,7 @@
             {% include 'components/dropdown.html' with id='hasta' label='Hasta Adı Soyadı' name='hasta' options=hasta_options %}
 
             <!-- Date input for the visit date -->
-            {% include 'components/dateinput.html' with id='visit-date' label='Muayene Tarihi' name='visit_date' %}
+            {% include 'components/dateinput.html' with id='visit-date' label='Muayene Tarihi' name='visit_date' required=True%}
 
             <!-- Patolojik Bulgular Section -->
             <div class="form-section">

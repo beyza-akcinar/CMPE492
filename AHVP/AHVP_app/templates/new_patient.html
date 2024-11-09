@@ -16,13 +16,15 @@
 
             {% include 'components/dropdown.html' with id='education-status' label='Eğitim Durumu' name='education_status' options=egitim_durum_options %}
             
+            {% include 'components/textfield.html' with id='meslek' label='Meslek' name='meslek' value='' placeholder='Hasta mesleğini giriniz' style_class='form-control' %}
+
             {% include 'components/dropdown.html' with id='city' label='Yaşadığı Şehir' name='city' options=city_options %}
 
             {% include 'components/dropdown.html' with id='medeni' label='Medeni Durum' name='medeni' options=medeni_durum_options %}
 
             {% include 'components/dropdown.html' with id='cinsiyet' label='Cinsiyet' name='cinsiyet' options=cinsiyet_options %}
 
-            {% include 'components/numberinput.html' with id='patient-age' label='Yaş' name='patient_age' style_class='form-control' placeholder='Yaşınızı giriniz' %}
+            {% include 'components/numberinput.html' with id='patient-age' label='Yaş' name='patient_age' style_class='form-control' placeholder='Hasta yaşını giriniz' %}
             
             <button type="submit" class="btn-submit">Kaydet</button>
         </form>

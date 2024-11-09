@@ -820,6 +820,7 @@ def new_patient_view(request):
         city = request.POST.get('city')
         marital_status = request.POST.get('medeni')
         gender = request.POST.get('cinsiyet')
+        occupation = request.POST.get('meslek')
         age = request.POST.get('patient_age')
         print(f"Name: {patient_name}, Surname: {patient_surname}, Education: {education_status}, City: {city}, Marital Status: {marital_status}, Gender: {gender}")
 
@@ -830,6 +831,7 @@ def new_patient_view(request):
             egitim_durumu=education_status,
             sehir=city,
             medeni_durum=marital_status,
+            meslek = occupation,
             cinsiyet=gender,
             yas=age,
         )

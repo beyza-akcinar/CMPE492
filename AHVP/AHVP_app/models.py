@@ -96,6 +96,8 @@ class Hasta(models.Model):
     sehir = models.CharField(max_length=100, choices=SEHIR_CHOICES)
     medeni_durum = models.CharField(max_length=100, choices=MEDENI_DURUM_CHOICES)
     egitim_durumu = models.CharField(max_length=100, choices=EGITIM_DURUM_CHOICES)
+    meslek = models.CharField(max_length=100)
+
 
     def __str__(self):
         return f"{self.isim} {self.soyisim} ({self.unique_hasta_id})"

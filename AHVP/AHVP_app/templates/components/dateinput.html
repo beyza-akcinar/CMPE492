@@ -1,4 +1,4 @@
 <div class="date-input">
     <label for="{{ id }}">{{ label }}</label>
-    <input type="date" id="{{ id }}" name="{{ name }}" required>
+    <input type="date" id="{{ id }}" name="{{ name }}" class="{{ style_class }}" {% if required %}required{% endif %}>
 </div>
