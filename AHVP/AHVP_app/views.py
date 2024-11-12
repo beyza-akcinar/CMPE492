@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Hasta, Muayene, FreeSurferSonuc
+from .models import Hasta, Muayene, FreeSurferSonuc, encrypt
 from .forms import MuayeneForm
 import pandas as pd
 from django.db.models import Q, Count
@@ -8,6 +8,8 @@ from django.http import HttpResponse
 from django.db import models
 from django.contrib import messages
 import ast
+from cryptography.fernet import Fernet
+from datetime import datetime
 
 def home_view(request):
     return render(request, 'home.html')
@@ -35,6 +37,8 @@ def new_examination_view(request):
         'hasta_options': hasta_options,
         'form': form
     })
+
+mri_fields = ['id', 'muayene', 'diagnosis', 'lh_cortex_vol', 'rh_cortex_vol', 'brain_seg_vol_not_vent', 'ventricle_choroid_vol', 'cortex_vol', 'brain_seg_vol', 'lh_cerebral_white_matter_vol', 'rh_cerebral_white_matter_vol', 'cerebral_white_matter_vol', 'subcort_gray_vol', 'total_gray_vol', 'supra_tentorial_vol', 'supra_tentorial_vol_not_vent', 'mask_vol', 'brain_seg_vol_to_etiv', 'mask_vol_to_etiv', 'lh_surface_holes', 'rh_surface_holes', 'surface_holes', 'etiv', 'left_lateral_ventricle_volume_mm3', 'left_lateral_ventricle_normmean', 'left_lateral_ventricle_normstddev', 'left_lateral_ventricle_normmin', 'left_lateral_ventricle_normmax', 'left_lateral_ventricle_normrange', 'left_inf_lat_vent_volume_mm3', 'left_inf_lat_vent_normmean', 'left_inf_lat_vent_normstddev', 'left_inf_lat_vent_normmin', 'left_inf_lat_vent_normmax', 'left_inf_lat_vent_normrange', 'left_cerebellum_white_matter_volume_mm3', 'left_cerebellum_white_matter_normmean', 'left_cerebellum_white_matter_normstddev', 'left_cerebellum_white_matter_normmin', 'left_cerebellum_white_matter_normmax', 'left_cerebellum_white_matter_normrange', 'left_cerebellum_cortex_volume_mm3', 'left_cerebellum_cortex_normmean', 'left_cerebellum_cortex_normstddev', 'left_cerebellum_cortex_normmin', 'left_cerebellum_cortex_normmax', 'left_cerebellum_cortex_normrange', 'left_thalamus_volume_mm3', 'left_thalamus_normmean', 'left_thalamus_normstddev', 'left_thalamus_normmin', 'left_thalamus_normmax', 'left_thalamus_normrange', 'left_caudate_volume_mm3', 'left_caudate_normmean', 'left_caudate_normstddev', 'left_caudate_normmin', 'left_caudate_normmax', 'left_caudate_normrange', 'left_putamen_volume_mm3', 'left_putamen_normmean', 'left_putamen_normstddev', 'left_putamen_normmin', 'left_putamen_normmax', 'left_putamen_normrange', 'left_pallidum_volume_mm3', 'left_pallidum_normmean', 'left_pallidum_normstddev', 'left_pallidum_normmin', 'left_pallidum_normmax', 'left_pallidum_normrange', 'the3rd_ventricle_volume_mm3', 'the3rd_ventricle_normmean', 'the3rd_ventricle_normstddev', 'the3rd_ventricle_normmin', 'the3rd_ventricle_normmax', 'the3rd_ventricle_normrange', 'the4th_ventricle_volume_mm3', 'the4th_ventricle_normmean', 'the4th_ventricle_normstddev', 'the4th_ventricle_normmin', 'the4th_ventricle_normmax', 'the4th_ventricle_normrange', 'brain_stem_volume_mm3', 'brain_stem_normmean', 'brain_stem_normstddev', 'brain_stem_normmin', 'brain_stem_normmax', 'brain_stem_normrange', 'left_hippocampus_volume_mm3', 'left_hippocampus_normmean', 'left_hippocampus_normstddev', 'left_hippocampus_normmin', 'left_hippocampus_normmax', 'left_hippocampus_normrange', 'left_amygdala_volume_mm3', 'left_amygdala_normmean', 'left_amygdala_normstddev', 'left_amygdala_normmin', 'left_amygdala_normmax', 'left_amygdala_normrange', 'csf_volume_mm3', 'csf_normmean', 'csf_normstddev', 'csf_normmin', 'csf_normmax', 'csf_normrange', 'left_accumbens_area_volume_mm3', 'left_accumbens_area_normmean', 'left_accumbens_area_normstddev', 'left_accumbens_area_normmin', 'left_accumbens_area_normmax', 'left_accumbens_area_normrange', 'left_ventraldc_volume_mm3', 'left_ventraldc_normmean', 'left_ventraldc_normstddev', 'left_ventraldc_normmin', 'left_ventraldc_normmax', 'left_ventraldc_normrange', 'left_vessel_volume_mm3', 'left_vessel_normmean', 'left_vessel_normstddev', 'left_vessel_normmin', 'left_vessel_normmax', 'left_vessel_normrange', 'left_choroid_plexus_volume_mm3', 'left_choroid_plexus_normmean', 'left_choroid_plexus_normstddev', 'left_choroid_plexus_normmin', 'left_choroid_plexus_normmax', 'left_choroid_plexus_normrange', 'right_lateral_ventricle_volume_mm3', 'right_lateral_ventricle_normmean', 'right_lateral_ventricle_normstddev', 'right_lateral_ventricle_normmin', 'right_lateral_ventricle_normmax', 'right_lateral_ventricle_normrange', 'right_inf_lat_vent_volume_mm3', 'right_inf_lat_vent_normmean', 'right_inf_lat_vent_normstddev', 'right_inf_lat_vent_normmin', 'right_inf_lat_vent_normmax', 'right_inf_lat_vent_normrange', 'right_cerebellum_white_matter_volume_mm3', 'right_cerebellum_white_matter_normmean', 'right_cerebellum_white_matter_normstddev', 'right_cerebellum_white_matter_normmin', 'right_cerebellum_white_matter_normmax', 'right_cerebellum_white_matter_normrange', 'right_cerebellum_cortex_volume_mm3', 'right_cerebellum_cortex_normmean', 'right_cerebellum_cortex_normstddev', 'right_cerebellum_cortex_normmin', 'right_cerebellum_cortex_normmax', 'right_cerebellum_cortex_normrange', 'right_thalamus_volume_mm3', 'right_thalamus_normmean', 'right_thalamus_normstddev', 'right_thalamus_normmin', 'right_thalamus_normmax', 'right_thalamus_normrange', 'right_caudate_volume_mm3', 'right_caudate_normmean', 'right_caudate_normstddev', 'right_caudate_normmin', 'right_caudate_normmax', 'right_caudate_normrange', 'right_putamen_volume_mm3', 'right_putamen_normmean', 'right_putamen_normstddev', 'right_putamen_normmin', 'right_putamen_normmax', 'right_putamen_normrange', 'right_pallidum_volume_mm3', 'right_pallidum_normmean', 'right_pallidum_normstddev', 'right_pallidum_normmin', 'right_pallidum_normmax', 'right_pallidum_normrange', 'right_hippocampus_volume_mm3', 'right_hippocampus_normmean', 'right_hippocampus_normstddev', 'right_hippocampus_normmin', 'right_hippocampus_normmax', 'right_hippocampus_normrange', 'right_amygdala_volume_mm3', 'right_amygdala_normmean', 'right_amygdala_normstddev', 'right_amygdala_normmin', 'right_amygdala_normmax', 'right_amygdala_normrange', 'right_accumbens_area_volume_mm3', 'right_accumbens_area_normmean', 'right_accumbens_area_normstddev', 'right_accumbens_area_normmin', 'right_accumbens_area_normmax', 'right_accumbens_area_normrange', 'right_ventraldc_volume_mm3', 'right_ventraldc_normmean', 'right_ventraldc_normstddev', 'right_ventraldc_normmin', 'right_ventraldc_normmax', 'right_ventraldc_normrange', 'right_vessel_volume_mm3', 'right_vessel_normmean', 'right_vessel_normstddev', 'right_vessel_normmin', 'right_vessel_normmax', 'right_vessel_normrange', 'right_choroid_plexus_volume_mm3', 'right_choroid_plexus_normmean', 'right_choroid_plexus_normstddev', 'right_choroid_plexus_normmin', 'right_choroid_plexus_normmax', 'right_choroid_plexus_normrange', 'the5th_ventricle_volume_mm3', 'the5th_ventricle_normmean', 'the5th_ventricle_normstddev', 'the5th_ventricle_normmin', 'the5th_ventricle_normmax', 'the5th_ventricle_normrange', 'wm_hypointensities_volume_mm3', 'wm_hypointensities_normmean', 'wm_hypointensities_normstddev', 'wm_hypointensities_normmin', 'wm_hypointensities_normmax', 'wm_hypointensities_normrange', 'left_wm_hypointensities_volume_mm3', 'left_wm_hypointensities_normmean', 'left_wm_hypointensities_normstddev', 'left_wm_hypointensities_normmin', 'left_wm_hypointensities_normmax', 'left_wm_hypointensities_normrange', 'right_wm_hypointensities_volume_mm3', 'right_wm_hypointensities_normmean', 'right_wm_hypointensities_normstddev', 'right_wm_hypointensities_normmin', 'right_wm_hypointensities_normmax', 'right_wm_hypointensities_normrange', 'non_wm_hypointensities_volume_mm3', 'non_wm_hypointensities_normmean', 'non_wm_hypointensities_normstddev', 'non_wm_hypointensities_normmin', 'non_wm_hypointensities_normmax', 'non_wm_hypointensities_normrange', 'left_non_wm_hypointensities_volume_mm3', 'left_non_wm_hypointensities_normmean', 'left_non_wm_hypointensities_normstddev', 'left_non_wm_hypointensities_normmin', 'left_non_wm_hypointensities_normmax', 'left_non_wm_hypointensities_normrange', 'right_non_wm_hypointensities_volume_mm3', 'right_non_wm_hypointensities_normmean', 'right_non_wm_hypointensities_normstddev', 'right_non_wm_hypointensities_normmin', 'right_non_wm_hypointensities_normmax', 'right_non_wm_hypointensities_normrange', 'optic_chiasm_volume_mm3', 'optic_chiasm_normmean', 'optic_chiasm_normstddev', 'optic_chiasm_normmin', 'optic_chiasm_normmax', 'optic_chiasm_normrange', 'cc_posterior_volume_mm3', 'cc_posterior_normmean', 'cc_posterior_normstddev', 'cc_posterior_normmin', 'cc_posterior_normmax', 'cc_posterior_normrange', 'cc_mid_posterior_volume_mm3', 'cc_mid_posterior_normmean', 'cc_mid_posterior_normstddev', 'cc_mid_posterior_normmin', 'cc_mid_posterior_normmax', 'cc_mid_posterior_normrange', 'cc_central_volume_mm3', 'cc_central_normmean', 'cc_central_normstddev', 'cc_central_normmin', 'cc_central_normmax', 'cc_central_normrange', 'cc_mid_anterior_volume_mm3', 'cc_mid_anterior_normmean', 'cc_mid_anterior_normstddev', 'cc_mid_anterior_normmin', 'cc_mid_anterior_normmax', 'cc_mid_anterior_normrange', 'cc_anterior_volume_mm3', 'cc_anterior_normmean', 'cc_anterior_normstddev', 'cc_anterior_normmin', 'cc_anterior_normmax', 'cc_anterior_normrange']
 
 def get_pretty_attribute_name(attribute_name):
     attribute_mapping = {
@@ -786,30 +790,137 @@ def export_freesurfer_to_excel(request):
 
     return response
 
-def upload_bulk_mri_results_view(request):
+def safe_integer(value):
+    """Convert value to integer if possible, otherwise return None for NaN or invalid values."""
+    if pd.isna(value):  # Checks for NaN
+        return None
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+import pandas as pd
+from datetime import datetime
+
+def upload_bulk_data_view(request):
     if request.method == 'POST':
-        mri_file = request.FILES.get('bulk_mri_file')
-        if not mri_file:
-            return HttpResponse("No file uploaded", status=400)
+        if 'bulk_mri_submit' in request.POST:
+            mri_file = request.FILES.get('bulk_mri_file')
+            if not mri_file:
+                return HttpResponse("No MRI file uploaded", status=400)
 
-        try:
-            df = pd.read_excel(mri_file)
-        except Exception as e:
-            return HttpResponse(f"Error reading file: {e}", status=400)
-
-        for _, row in df.iterrows():
-            hasta_id = row.get('Patient_ID')
             try:
-                hasta = Hasta.objects.get(unique_hasta_id=hasta_id)
-            except Hasta.DoesNotExist:
-                print(f"Hasta ID {hasta_id} bulunamadı, atlanıyor.")
-                continue  
-            muayene = Muayene.objects.create(hasta=hasta)
+                df = pd.read_excel(mri_file)
+                print("MRI file read successfully.")
+            except Exception as e:
+                print(f"Error reading MRI file: {e}")
+                return HttpResponse(f"Error reading MRI file: {e}", status=400)
 
-            create_freesurfer_sonuc(muayene, row)
+            for _, row in df.iterrows():
+                hasta_id = row.get('Patient_ID')
+                try:
+                    hasta = Hasta.objects.get(unique_hasta_id=hasta_id)
+                except Hasta.DoesNotExist:
+                    print(f"Hasta ID {hasta_id} not found, skipping.")
+                    continue  
+                
+                muayene = Muayene.objects.create(hasta=hasta)
+                create_freesurfer_sonuc(muayene, row)
 
-        return render(request, 'bulk_data_upload.html')
+            return render(request, 'bulk_data_upload.html', {'message': 'MRI data uploaded successfully.'})
+
+        elif 'bulk_visit_submit' in request.POST:
+            bulk_file = request.FILES.get('visit_file')
+            if not bulk_file:
+                return HttpResponse("No Visit file uploaded", status=400)
+
+            try:
+                df = pd.read_excel(bulk_file)
+                print("Visit file read successfully.")
+            except Exception as e:
+                print(f"Error reading Visit file: {e}")
+                return HttpResponse(f"Error reading Visit file: {e}", status=400)
+            
+            for _, row in df.iterrows():
+                # Extract patient details
+                full_name = row.get('Hasta İsim')
+                if full_name:
+                    name_parts = full_name.split()
+                    patient_surname = name_parts[-1]
+                    patient_name = " ".join(name_parts[:-1])
+                else:
+                    continue
+
+                education_status = row.get('Eğitim durumu') if pd.notna(row.get('Eğitim durumu')) else 'Unknown'
+                city = row.get('Yaşadığı şehir') if pd.notna(row.get('Yaşadığı şehir')) else 'Unknown'
+                marital_status = row.get('Medeni hal') if pd.notna(row.get('Medeni hal')) else 'Unknown'
+                gender = row.get('Cinsiyet') if pd.notna(row.get('Cinsiyet')) else 'Unknown'
+                occupation = row.get('Meslek') if pd.notna(row.get('Meslek')) else 'Unknown'
+                age = int(row.get('Yaş')) if pd.notna(row.get('Yaş')) else -1
+
+                try:
+                    patient = Hasta.objects.get(
+                        isim=patient_name,
+                        soyisim=patient_surname,
+                        egitim_durumu=education_status,
+                        sehir=city,
+                        medeni_durum=marital_status,
+                        cinsiyet=gender,
+                        meslek=occupation,
+                        yas=age,
+                    )
+                except Hasta.DoesNotExist:
+                    patient = Hasta.objects.create(
+                        isim=patient_name,
+                        soyisim=patient_surname,
+                        egitim_durumu=education_status,
+                        sehir=city,
+                        medeni_durum=marital_status,
+                        cinsiyet=gender,
+                        yas=age,
+                        meslek=occupation
+                    )
+
+                # Date handling for visit_date and encryption
+                encrypted_date = None
+                day = row.get('(Gerçek) Ziyaret tarihi (gün)')
+                month = row.get('(Gerçek) Ziyaret tarihi (ay)')
+                year = row.get('(Gerçek) Ziyaret tarihi (yıl)')
+
+                if pd.notna(day) and pd.notna(month) and pd.notna(year):
+                    try:
+                        visit_date = datetime(year=int(year), month=int(month), day=int(day))
+                        encrypted_date = encrypt(visit_date.strftime('%Y-%m-%d %H:%M:%S'))
+                    except ValueError as e:
+                        print(f"Error parsing date for row {row}: {e}")
+
+                # Fetch and normalize examination data
+                denge_bozuklugu_text = row.get('Denge bozukluğu var mı?', '')
+                serebellar_bulgular_text = row.get('Serebellar bulgular var mı?', '')
+                ense_sertligi_text = row.get('Ense sertliği var mı?', '')
+                parkinsonizm_text = row.get('Parkinsonizm bulguları var mı?', '')
+                kranial_sinir_bulgulari_text = row.get('Kranial sinir bulguları var mı?', '')
+                motor_duygusal_bulgular_text = row.get('Motor ve duysal bulgular', '')
+                patolojik_refleks_text = row.get('Patolojik refleks var mı?', '')
+
+                # Create Muayene record
+                muayene = Muayene.objects.create(
+                    hasta=patient,
+                    sifrelenmis_tarih=encrypted_date,
+                    denge_bozuklugu='YOK' not in (denge_bozuklugu_text.upper() if isinstance(denge_bozuklugu_text, str) else ''),
+                    serebellar_bulgular='YOK' not in (serebellar_bulgular_text.upper() if isinstance(serebellar_bulgular_text, str) else ''),
+                    ense_sertligi='YOK' not in (ense_sertligi_text.upper() if isinstance(ense_sertligi_text, str) else ''),
+                    parkinsonizm='YOK' not in (parkinsonizm_text.upper() if isinstance(parkinsonizm_text, str) else ''),
+                    kranial_sinir_bulgulari='YOK' not in (kranial_sinir_bulgulari_text.upper() if isinstance(kranial_sinir_bulgulari_text, str) else ''),
+                    motor_duygusal_bulgular='YOK' not in (motor_duygusal_bulgular_text.upper() if isinstance(motor_duygusal_bulgular_text, str) else ''),
+                    patolojik_refleks='YOK' not in (patolojik_refleks_text.upper() if isinstance(patolojik_refleks_text, str) else ''),
+                    mmse=safe_integer(row.get('Mini-Mental State Examination (MMSE) skoru', None)),
+                    acer=safe_integer(row.get('Addenbrooke’s Cognitive Examination Revised (ACE-R) skoru', None)),
+                    # Add remaining fields here
+                )
+
+            return render(request, 'bulk_data_upload.html', {'message': 'Visit data uploaded successfully.'})
     return render(request, 'bulk_data_upload.html')
+
 
 def new_patient_view(request):
     if request.method == 'POST':

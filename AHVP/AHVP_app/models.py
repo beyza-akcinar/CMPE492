@@ -130,11 +130,13 @@ class Muayene(models.Model):
     mmse = models.IntegerField(null=True, blank=True)
 
     # Kan Tahlili Sonuclari
+    glukoz = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     tam_kan_hb = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     tam_kan_lym = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     tam_kan_neu = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     tam_kan_plt = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     vitamin_b12 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    tiroid_fonksiyon = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     ast = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     alt = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     ldh = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)

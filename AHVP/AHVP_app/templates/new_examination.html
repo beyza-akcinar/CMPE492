@@ -53,16 +53,20 @@
                 {% include 'components/numberinput.html' with id='mmse_lisan' label='Lisan' name='mmse_lisan' style_class='form-control' placeholder='MMSE lisan skorunu giriniz (0-9)' min=0 max=9 %}
                 {% include 'components/numberinput.html' with id='mmse' label='MMSE Toplam Skor' name='mmse' style_class='form-control' placeholder='MMSE toplam skorunu giriniz (0-30)' min=0 max=30 %}
             </div>
+            
 
             <!-- Kan Tahlili Sonuclari -->
             <div class="form-section">
                 <h3>Kan Tahlili Sonuçları</h3>
+                {% include 'components/numberinput.html' with id='glukoz' label='Glukoz Seviyesi' name='tam_kan_hb' style_class='form-control' placeholder='Glukoz seviyesi giriniz' min=0 %}
                 {% include 'components/numberinput.html' with id='tam-kan-hb' label='Tam Kan-Hb (g/dL)' name='tam_kan_hb' style_class='form-control' placeholder='Tam Kan-Hb değerini giriniz' min=0 %}
                 {% include 'components/numberinput.html' with id='tam-kan-lym' label='Tam Kan-LYM (10^3/mm^3)' name='tam_kan_lym' style_class='form-control' placeholder='Tam Kan-LYM değerini giriniz' min=0 %}
                 {% include 'components/numberinput.html' with id='tam-kan-neu' label='Tam Kan-NEU (10^3/mm^3)' name='tam_kan_neu' style_class='form-control' placeholder='Tam Kan-NEU değerini giriniz' min=0 %}
                 {% include 'components/numberinput.html' with id='tam-kan-plt' label='Tam Kan-PLT (10^3/mm^3)' name='tam_kan_plt' style_class='form-control' placeholder='Tam Kan-PLT değerini giriniz' min=0 %}
                 {% include 'components/numberinput.html' with id='vitamin-b12' label='Vitamin B12 Seviyesi (pg/mL)' name='vitamin_b12' style_class='form-control' placeholder='Vitamin B12 seviyesini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='tiroid_fonksiyon' label='Tiroid Fonksiyon Testi Sonucu' name='tiroid_fonksiyon' style_class='form-control' placeholder='Tiroid fonksiyon testi sonucunu giriniz' min=0 %} 
                 {% include 'components/numberinput.html' with id='ast' label='Aspartat Aminotransferaz (AST) Değeri (U/L)' name='ast' style_class='form-control' placeholder='AST değerini giriniz' min=0 %}
+                {% include 'components/numberinput.html' with id='tam-kan-plt' label='Tam Kan-PLT (10^3/mm^3)' name='tiroid_fonksiyon' style_class='form-control' placeholder='Tiroid fonksiyon testi sonucunu giriniz' min=0 %}
                 {% include 'components/numberinput.html' with id='alt' label='Alanin Aminotransferaz (ALT) Değeri (U/L)' name='alt' style_class='form-control' placeholder='ALT değerini giriniz' min=0 %}
                 {% include 'components/numberinput.html' with id='ldh' label='Laktat Dehidrogenaz (LDH) Değeri' name='ldh' style_class='form-control' placeholder='LDH değerini giriniz' min=0 %}
                 {% include 'components/numberinput.html' with id='bun' label='Kan Üre Azotu (BUN) Değeri' name='bun' style_class='form-control' placeholder='BUN değerini giriniz' min=0 %}

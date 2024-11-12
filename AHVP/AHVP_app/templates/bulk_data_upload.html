@@ -5,18 +5,26 @@
 {% block content %}
     <div class="dashboard-content">
         <h2>Toplu Veri Yükle</h2>
+        
+        <!-- MRI FreeSurfer Sonuçları Yükle Form -->
         <h3>MRI FreeSurfer Sonuçları Yükle</h3>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="file" name="bulk_mri_file" accept=".xlsx">
-            <button type="submit">Yükle</button>
+            <button type="submit" name="bulk_mri_submit">Yükle</button>
         </form>
+        
+        <!-- Toplu Muayene Verisi Yükle Form -->
         <h3>Toplu Muayene Verisi Yükle</h3>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="file" name="visit_file" accept=".xlsx">
-            <button type="submit">Yükle</button>
+            <button type="submit" name="bulk_visit_submit">Yükle</button>
         </form>
+        
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
     </div>
-
+    
 {% endblock %}
