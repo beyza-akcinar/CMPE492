@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}AHVP{% endblock %}
+
+{% block content %}
+    <h1>Download Datasets</h1>
+    <p>Click the buttons below to download the respective datasets:</p>
+    <form action="{% url 'download_hasta_csv' %}" method="get" style="display:inline;">
+        <button type="submit" class="btn-submit">Download Hasta</button>
+    </form>
+    <form action="{% url 'download_muayene_csv' %}" method="get" style="display:inline;">
+        <button type="submit" class="btn-submit">Download Muayene</button>
+    </form>
+    <form action="{% url 'download_mri_csv' %}" method="get" style="display:inline;">
+        <button type="submit" class="btn-submit">Download MRI</button>
+    </form>
+
+{% endblock %}

@@ -10,6 +10,11 @@ from django.contrib import messages
 import ast
 from cryptography.fernet import Fernet
 from datetime import datetime
+from django.apps import apps
+import csv
+import os
+import zipfile
+from io import BytesIO
 
 def home_view(request):
     return render(request, 'home.html')
@@ -798,8 +803,6 @@ def safe_integer(value):
         return int(value)
     except (ValueError, TypeError):
         return None
-import pandas as pd
-from datetime import datetime
 
 def upload_bulk_data_view(request):
     if request.method == 'POST':
@@ -1041,3 +1044,28 @@ def data_report_view(request):
         'pet_labels': ['PET Verisi var', 'PET Verisi yok'],
         'pet_counts': [patients_with_pet, patients_without_pet]
     })
+
+
+def download_page(request):
+    return render(request, 'download_data_view.html')
+
+# CSV generation helpers
+def generate_csv_response(queryset, filename):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    writer.writerow([field.name for field in queryset.model._meta.fields])  # Header
+    for obj in queryset:
+        writer.writerow([getattr(obj, field.name) for field in queryset.model._meta.fields])
+    return response
+
+# Separate views for downloading each dataset
+def download_hasta_csv(request):
+    return generate_csv_response(Hasta.objects.all(), "hasta.csv")
+
+def download_muayene_csv(request):
+    return generate_csv_response(Muayene.objects.all(), "muayene.csv")
+
+def download_mri_csv(request):
+    return generate_csv_response(FreeSurferSonuc.objects.all(), "mri.csv")

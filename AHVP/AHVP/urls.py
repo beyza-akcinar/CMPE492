@@ -30,4 +30,9 @@ urlpatterns = [
     path('muayene/edit/<int:id>/', views.edit_examination_view, name='edit_examination_view'),
     path('hasta/<int:patient_id>/', views.patient_detail_view, name='patient_detail_view'),
     path('datareport/', views.data_report_view, name='data_report_view'),
+    path('downloads/', views.download_page, name='downloads'),
+    path('downloads/hasta/', views.download_hasta_csv, name='download_hasta_csv'),
+    path('downloads/muayene/', views.download_muayene_csv, name='download_muayene_csv'),
+    path('downloads/mri/', views.download_mri_csv, name='download_mri_csv'),
+
 ]
