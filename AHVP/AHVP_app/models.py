@@ -88,7 +88,7 @@ class Hasta(models.Model):
         ('zonguldak', 'Zonguldak'),
     ]
 
-    unique_hasta_id = models.AutoField(primary_key=True)  # Unique patient ID
+    hasta_id = models.AutoField(primary_key=True) 
     isim = models.CharField(max_length=100)
     soyisim = models.CharField(max_length=100)
     cinsiyet = models.CharField(max_length=10, choices=CINSIYET_CHOICES)
@@ -100,7 +100,7 @@ class Hasta(models.Model):
 
 
     def __str__(self):
-        return f"{self.isim} {self.soyisim} ({self.unique_hasta_id})"
+        return f"{self.isim} {self.soyisim} ({self.hasta_id})"
 
 class Muayene(models.Model):
     hasta = models.ForeignKey(Hasta, on_delete=models.CASCADE)  # The examination belongs to a patient
@@ -182,8 +182,8 @@ class Muayene(models.Model):
     ek_testler = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return f"Muayene {self.id} - Hasta ID: {self.hasta.unique_hasta_id}"
-
+        return f"{self.id}" 
+    
     # Save method to automatically encrypt the date
     def save(self, *args, **kwargs):
         if not self.sifrelenmis_tarih:  # Encrypt only if it's not already set
