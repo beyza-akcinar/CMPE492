@@ -100,7 +100,7 @@ class Hasta(models.Model):
 
 
     def __str__(self):
-        return f"{self.isim} {self.soyisim} ({self.hasta_id})"
+        return f"{self.hasta_id}"
 
 class Muayene(models.Model):
     hasta = models.ForeignKey(Hasta, on_delete=models.CASCADE)  # The examination belongs to a patient
