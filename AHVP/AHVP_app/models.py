@@ -3,7 +3,7 @@ from cryptography.fernet import Fernet
 from datetime import datetime
 
 # AES encryption key (store securely in real projects)
-KEY = Fernet.generate_key()
+KEY = b'rIPBI43WwbPzTGoUmrkF7mENYpIMYXkXorviVCj31LY='
 cipher_suite = Fernet(KEY)
 
 # Encryption function
