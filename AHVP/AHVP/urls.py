@@ -34,5 +34,6 @@ urlpatterns = [
     path('downloads/hasta/', views.download_hasta_csv, name='download_hasta_csv'),
     path('downloads/muayene/', views.download_muayene_csv, name='download_muayene_csv'),
     path('downloads/mri/', views.download_mri_csv, name='download_mri_csv'),
+    path('patient_similarity/', views.patient_similarity_view, name='patient_similarity_view'),
 
 ]

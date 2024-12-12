@@ -15,6 +15,49 @@ import csv
 import os
 import zipfile
 from io import BytesIO
+import math
+import json
+from .models import CINSIYET_CHOICES, MEDENI_DURUM_CHOICES, EGITIM_DURUM_CHOICES, SEHIR_CHOICES
+
+def build_encoding_map(choices):
+    return {choice[0]: idx for idx, choice in enumerate(choices)}
+
+CINSIYET_ENCODING = build_encoding_map(CINSIYET_CHOICES)
+MEDENI_DURUM_ENCODING = build_encoding_map(MEDENI_DURUM_CHOICES)
+EGITIM_DURUM_ENCODING = build_encoding_map(EGITIM_DURUM_CHOICES)
+SEHIR_ENCODING = build_encoding_map(SEHIR_CHOICES)
+
+def patient_to_vector(hasta):
+    return [
+        CINSIYET_ENCODING.get(hasta.cinsiyet, -1),  # Default -1 if not found
+        hasta.yas,
+        SEHIR_ENCODING.get(hasta.sehir, -1),
+        MEDENI_DURUM_ENCODING.get(hasta.medeni_durum, -1),
+        EGITIM_DURUM_ENCODING.get(hasta.egitim_durumu, -1)
+    ]
+
+def min_max_scale(value, min_val, max_val):
+    if max_val != min_val:
+        return (value - min_val) / (max_val - min_val)
+    else:
+        return 0.0
+    
+def scale_vectors(vectors):
+    # vectors: list of lists
+    # Transpose to get columns
+    cols = list(zip(*vectors))
+    scaled_cols = []
+    for col in cols:
+        col_min = min(col)
+        col_max = max(col)
+        scaled_col = [min_max_scale(val, col_min, col_max) for val in col]
+        scaled_cols.append(scaled_col)
+    # Transpose back
+    scaled_vectors = list(zip(*scaled_cols))
+    return [list(vec) for vec in scaled_vectors]
+
+def euclidean_distance(vec1, vec2):
+    return math.sqrt(sum((a - b)**2 for a, b in zip(vec1, vec2)))
 
 def home_view(request):
     return render(request, 'home.html')
@@ -954,10 +997,10 @@ def new_patient_view(request):
         return redirect('home')
 
     return render(request, 'new_patient.html', {
-        'city_options': Hasta.SEHIR_CHOICES,
-        'cinsiyet_options': Hasta.CINSIYET_CHOICES,  # Pass gender choices
-        'medeni_durum_options': Hasta.MEDENI_DURUM_CHOICES,
-        'egitim_durum_options': Hasta.EGITIM_DURUM_CHOICES 
+        'city_options': SEHIR_CHOICES,
+        'cinsiyet_options': CINSIYET_CHOICES,  # Pass gender choices
+        'medeni_durum_options': MEDENI_DURUM_CHOICES,
+        'egitim_durum_options': EGITIM_DURUM_CHOICES 
     })
 
 def search_examination_view(request):
@@ -1069,3 +1112,107 @@ def download_muayene_csv(request):
 
 def download_mri_csv(request):
     return generate_csv_response(FreeSurferSonuc.objects.all(), "mri.csv")
+
+def patient_similarity_view(request):
+    query = request.GET.get('arama', '')
+    selected_patient_id = request.GET.get('selected_patient_id', None)
+    arama_sonucu = []
+    similar_patients = []
+    selected_data = None
+    similar_data = []
+    attribute_labels = []
+
+    if query:
+        # Search patients by name or ID
+        arama_sonucu = Hasta.objects.filter(
+            Q(isim__icontains=query) | 
+            Q(soyisim__icontains=query) |
+            Q(hasta_id__icontains=query)
+        )
+
+    if selected_patient_id:
+        try:
+            selected_patient_id = int(selected_patient_id)
+            selected_patient = Hasta.objects.get(hasta_id=selected_patient_id)
+            
+            # Get all patients including the selected one
+            all_patients = list(Hasta.objects.all())
+            
+            # Convert all patients to vectors
+            all_vectors = [patient_to_vector(p) for p in all_patients]
+            
+            # Scale all vectors
+            scaled_all_vectors = scale_vectors(all_vectors)
+            
+            # Find the index of the selected patient in all_patients
+            selected_index = next(i for i, p in enumerate(all_patients) if p.hasta_id == selected_patient_id)
+            selected_vec = scaled_all_vectors[selected_index]
+
+            # Compute distances to all others
+            distances = []
+            for i, p in enumerate(all_patients):
+                if p.hasta_id != selected_patient_id:
+                    p_vec = scaled_all_vectors[i]
+                    dist = euclidean_distance(selected_vec, p_vec)
+                    distances.append((p, dist))
+
+            # Sort by distance ascending and take top 5
+            distances.sort(key=lambda x: x[1])
+            similar_patients = [x[0] for x in distances[:5]]
+            if similar_patients:
+                selected_patient = Hasta.objects.get(hasta_id=selected_patient_id)
+                # Get all patients for scaling
+                all_patients = list(Hasta.objects.all())
+                all_vectors = [patient_to_vector(p) for p in all_patients]
+                scaled_all_vectors = scale_vectors(all_vectors)
+
+                # Find index of selected patient in all_patients
+                selected_index = next(i for i, pt in enumerate(all_patients) if pt.hasta_id == selected_patient.hasta_id)
+                selected_vec = scaled_all_vectors[selected_index]
+
+                # Compute distances to others
+                distances = []
+                for i, p in enumerate(all_patients):
+                    if p.hasta_id != selected_patient.hasta_id:
+                        dist = euclidean_distance(selected_vec, scaled_all_vectors[i])
+                        distances.append((p, dist))
+
+                distances.sort(key=lambda x: x[1])
+                similar_patients = [x[0] for x in distances[:5]]
+
+                # Prepare data for radar chart
+                # The labels for the radar axes (corresponding to vector attributes)
+                # For demonstration: ['Cinsiyet', 'Yaş', 'Şehir', 'Medeni Durum', 'Eğitim Durumu']
+                # We'll store them in the template statically, or pass them through context.
+                # We'll pass them through context for clarity:
+                attribute_labels = ['Cinsiyet', 'Yaş', 'Şehir', 'Medeni Durum', 'Eğitim Durumu']
+                
+
+                # Extract scaled vectors for selected and similar patients
+                # We'll include display names for tooltips if needed
+                selected_data = {
+                    'label': f"{selected_patient.isim} {selected_patient.soyisim}",
+                    'data': scaled_all_vectors[selected_index],
+                }
+
+                similar_data = []
+                for sp in similar_patients:
+                    idx = all_patients.index(sp)
+                    similar_data.append({
+                        'label': f"{sp.isim} {sp.soyisim}",
+                        'data': scaled_all_vectors[idx]
+                    })
+
+        except Hasta.DoesNotExist:
+            pass
+
+    context = {
+        'arama_sonucu': arama_sonucu,
+        'selected_patient_id': selected_patient_id,
+        'similar_patients': similar_patients,
+        'selected_data_json': json.dumps(selected_data),
+        'similar_data_json': json.dumps(similar_data),
+        'attribute_labels' : attribute_labels
+    }
+
+    return render(request, 'patient_similarity.html', context)

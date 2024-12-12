@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Benzer Hasta Görüntüleme</h2>
+
+<form method="GET" action="{% url 'patient_similarity_view' %}">
+    {% csrf_token %}
+    <div class="search-container">
+        {% include 'components/textfield.html' with id="arama" label="Arama" name="arama" value="" placeholder="Hasta adı veya Hasta ID" style_class="search-input" %}
+        <button type="submit" class="btn-submit">Ara</button>
+    </div>
+    <p>Lütfen hasta adı veya ID ile arama yapınız.</p>
+</form>
+
+{% if arama_sonucu %}
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>Hasta ID</th>
+                <th>Hasta Adı</th>
+                <th>Seç</th>
+            </tr>
+            {% for hasta in arama_sonucu %}
+            <tr>
+                <td>{{ hasta.hasta_id }}</td>
+                <td>{{ hasta.isim }} {{ hasta.soyisim }}</td>
+                <td>
+                    <a href="?selected_patient_id={{ hasta.hasta_id }}&arama={{ request.GET.arama|default:'' }}" style="color: rgb(205, 100, 100); font-weight: bold;">
+                        Seç
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endif %}
+
+{% if selected_patient_id and similar_patients %}
+    <h3>Seçilen Hasta ID: {{ selected_patient_id }}</h3>
+    <h4>En Benzer 5 Hasta</h4>
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>Hasta ID</th>
+                <th>Hasta Adı</th>
+                <th>Yaş</th>
+                <th>Cinsiyet</th>
+                <th>Şehir</th>
+                <th>Medeni Durum</th>
+                <th>Eğitim Durumu</th>
+            </tr>
+            {% for p in similar_patients %}
+            <tr>
+                <td>{{ p.hasta_id }}</td>
+                <td>{{ p.isim }} {{ p.soyisim }}</td>
+                <td>{{ p.yas }}</td>
+                <td>{{ p.get_cinsiyet_display }}</td>
+                <td>{{ p.get_sehir_display }}</td>
+                <td>{{ p.get_medeni_durum_display }}</td>
+                <td>{{ p.get_egitim_durumu_display }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <h3>Benzerlik Grafiği</h3>
+    <canvas id="radarChart" width="600" height="400"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const attributeLabels = {{ attribute_labels|safe }};
+        const selectedData = {{ selected_data_json|safe }};
+        const similarData = {{ similar_data_json|safe }};
+
+        // Prepare datasets
+        // selectedData and similarData contain 'label' and 'data' arrays
+        const datasets = [
+            {
+                label: selectedData.label,
+                data: selectedData.data,
+                borderColor: 'rgba(255,0,0,1)',
+                backgroundColor: 'rgba(255,0,0,0.2)',
+            }
+        ];
+
+        // Add each similar patient as a dataset
+        similarData.forEach((p, idx) => {
+            const colorHue = (idx * 60) % 360; // Different color for each
+            datasets.push({
+                label: p.label,
+                data: p.data,
+                borderColor: `hsl(${colorHue}, 70%, 50%)`,
+                backgroundColor: `hsla(${colorHue}, 70%, 50%, 0.2)`,
+            });
+        });
+
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: attributeLabels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                aspectRatio: 1.5,
+                scales: {
+                    r: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        enabled: true
+                    }
+                }
+            }
+        });
+    </script>
+{% endif %}
+
+     <style>
+        .search-container {
+            display: flex; 
+            align-items: center; 
+            box-sizing: border-box;
+        }
+        .textfield {
+            margin-right: 10px;
+            flex: 1;
+            box-sizing: border-box;
+        }
+        .btn-submit {
+            box-sizing: border-box;
+            margin-top: 7px;
+            height: 40px;
+        }
+        .textfield input{
+            width: 100%;
+            flex: 1;
+        }
+        .table-container {
+            overflow-x: auto; 
+            width: 100%;
+            max-width: 100%;
+            position: relative;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            border: 1px solid #d4d4d4;
+        }
+
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid #d4d4d4;
+        }
+
+        table th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+            color: #333;
+        }
+
+        table tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #dde1e6;
+        }
+
+        table tr:hover {
+            background-color: #e3e3e3;
+            transition: background-color 0.2s ease;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        h3, h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .messages {
+            list-style-type: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .messages li {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            color: #fff;
+        }
+
+        .messages li.success {
+            background-color: #75cb89; 
+        }
+    </style>
+
+{% endblock %}
