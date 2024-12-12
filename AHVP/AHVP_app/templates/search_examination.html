@@ -31,8 +31,8 @@
                 <tr>
                     <td>{{ muayene.id }}</td>
                     <td>
-                        <a href="{% url 'patient_detail_view' muayene.hasta.unique_hasta_id %}" style="color: rgb(205, 100, 100); font-weight: bold;">
-                            {{ muayene.hasta.unique_hasta_id }}
+                        <a href="{% url 'patient_detail_view' muayene.hasta.hasta_id %}" style="color: rgb(205, 100, 100); font-weight: bold;">
+                            {{ muayene.hasta.hasta_id }}
                         </a>
                     </td>
                     <td>{{ muayene.hasta.isim }} {{ muayene.hasta.soyisim }} </td>

@@ -203,7 +203,7 @@
                             <tr>
                                 {% for column in columns %}
                                     {% if column.field == 'muayene' %}
-                                        <td>{{ sonuc.muayene.hasta.unique_hasta_id }}</td>  {# Only show Hasta ID for the muayene column #}
+                                        <td>{{ sonuc.muayene.hasta.hasta_id }}</td>  {# Only show Hasta ID for the muayene column #}
                                     {% else %}
                                         <td>{{ sonuc|get_attr:column.field }}</td>
                                     {% endif %}

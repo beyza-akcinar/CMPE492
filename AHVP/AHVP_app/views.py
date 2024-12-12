@@ -36,7 +36,7 @@ def new_examination_view(request):
         form = MuayeneForm()
     
     hasta_list = Hasta.objects.all()
-    hasta_options = [(hasta.unique_hasta_id, f"{hasta.isim} {hasta.soyisim}") for hasta in hasta_list]
+    hasta_options = [(hasta.hasta_id, f"{hasta.isim} {hasta.soyisim}") for hasta in hasta_list]
 
     return render(request, 'new_examination.html', {
         'hasta_options': hasta_options,
@@ -684,7 +684,7 @@ def freesurfer_list_view(request):
     if selected_tani and selected_tani != 'Tüm Tanılar':
         filters['diagnosis'] = selected_tani
     if selected_hasta_id and selected_hasta_id != '':
-        filters['muayene__hasta__unique_hasta_id'] = selected_hasta_id
+        filters['muayene__hasta__hasta_id'] = selected_hasta_id
 
     freesurfer_sonuclari = FreeSurferSonuc.objects.filter(**filters)
     
@@ -743,7 +743,7 @@ def export_freesurfer_to_excel(request):
     if selected_tani and selected_tani != 'Tüm Tanılar':
         filters['diagnosis'] = selected_tani
     if selected_hasta_id and selected_hasta_id != '':
-        filters['muayene__hasta__unique_hasta_id'] = selected_hasta_id
+        filters['muayene__hasta__hasta_id'] = selected_hasta_id
 
     freesurfer_sonuclari = FreeSurferSonuc.objects.filter(**filters)
 
@@ -819,11 +819,11 @@ def upload_bulk_data_view(request):
                 return HttpResponse(f"Error reading MRI file: {e}", status=400)
 
             for _, row in df.iterrows():
-                hasta_id = row.get('Patient_ID')
+                id = row.get('Patient_ID')
                 try:
-                    hasta = Hasta.objects.get(unique_hasta_id=hasta_id)
+                    hasta = Hasta.objects.get(hasta_id=id)
                 except Hasta.DoesNotExist:
-                    print(f"Hasta ID {hasta_id} not found, skipping.")
+                    print(f"Hasta ID {id} not found, skipping.")
                     continue  
                 
                 muayene = Muayene.objects.create(hasta=hasta)
@@ -993,7 +993,7 @@ def edit_examination_view(request, id):
     return render(request, 'edit_examination.html', {'form': form, 'muayene': muayene})
 
 def patient_detail_view(request, patient_id):
-    hasta = get_object_or_404(Hasta, unique_hasta_id=patient_id)
+    hasta = get_object_or_404(Hasta, hasta_id=patient_id)
     muayeneler = Muayene.objects.filter(hasta=hasta)
     return render(request, 'patient_detail_view.html', {'hasta': hasta , 'muayeneler': muayeneler})
 

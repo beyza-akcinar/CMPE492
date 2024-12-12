@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name="Hasta",
             fields=[
                 (
-                    "unique_hasta_id",
+                    "hasta_id",
                     models.AutoField(primary_key=True, serialize=False),
                 ),
                 ("isim", models.CharField(max_length=100)),
