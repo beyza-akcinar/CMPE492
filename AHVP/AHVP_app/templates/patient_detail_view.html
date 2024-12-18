@@ -6,7 +6,7 @@
     
     {% if hasta %}
     <div class="patient-info">
-        {% include 'components/textfield.html' with id='unique_hasta_id' label='Hasta ID' name='unique_hasta_id' value=hasta.unique_hasta_id placeholder='Hasta ID' style_class='form-control' readonly=True %}
+        {% include 'components/textfield.html' with id='hasta_id' label='Hasta ID' name='hasta_id' value=hasta.hasta_id placeholder='Hasta ID' style_class='form-control' readonly=True %}
         {% include 'components/textfield.html' with id='isim' label='Hasta Adı' name='isim' value=hasta.isim placeholder='Hasta Adı' style_class='form-control' readonly=True %}
         {% include 'components/textfield.html' with id='soyisim' label='Hasta Soyadı' name='soyisim' value=hasta.soyisim placeholder='Hasta Soyadı' style_class='form-control' readonly=True %}
         {% include 'components/textfield.html' with id='cinsiyet' label='Cinsiyet' name='cinsiyet' value=hasta.get_cinsiyet_display placeholder='Cinsiyet' style_class='form-control' readonly=True %}

@@ -15,6 +15,158 @@ import csv
 import os
 import zipfile
 from io import BytesIO
+import math
+import json
+from .models import CINSIYET_CHOICES, MEDENI_DURUM_CHOICES, EGITIM_DURUM_CHOICES, SEHIR_CHOICES
+
+def build_encoding_map(choices):
+    return {choice[0]: idx for idx, choice in enumerate(choices)}
+
+CINSIYET_ENCODING = build_encoding_map(CINSIYET_CHOICES)
+MEDENI_DURUM_ENCODING = build_encoding_map(MEDENI_DURUM_CHOICES)
+EGITIM_DURUM_ENCODING = build_encoding_map(EGITIM_DURUM_CHOICES)
+SEHIR_ENCODING = build_encoding_map(SEHIR_CHOICES)
+
+all_diagnoses = FreeSurferSonuc.objects.values_list('diagnosis', flat=True).distinct()
+DIAGNOSIS_ENCODING = {diagnosis: idx for idx, diagnosis in enumerate(all_diagnoses)}
+
+def patient_to_vector(hasta):
+    # Base vector from Hasta
+    base_vector = [
+        CINSIYET_ENCODING.get(hasta.cinsiyet, -1),
+        float(hasta.yas),
+        SEHIR_ENCODING.get(hasta.sehir, -1),
+        MEDENI_DURUM_ENCODING.get(hasta.medeni_durum, -1),
+        EGITIM_DURUM_ENCODING.get(hasta.egitim_durumu, -1),
+    ]
+
+    # Get the Muayene with the largest ID
+    muayene = Muayene.objects.filter(hasta=hasta).order_by('-id').first()
+
+    if muayene:
+        # Boolean fields as 1/0
+        muayene_booleans = [
+            int(muayene.denge_bozuklugu),
+            int(muayene.serebellar_bulgular),
+            int(muayene.ense_sertligi),
+            int(muayene.parkinsonizm),
+            int(muayene.kranial_sinir_bulgulari),
+            int(muayene.motor_duygusal_bulgular),
+            int(muayene.patolojik_refleks),
+        ]
+
+        # Cognitive tests (use 0 if None)
+        muayene_cognitive = [
+            muayene.acer or 0,
+            muayene.npt or 0,
+            muayene.beck_depresyon or 0,
+            muayene.beck_anksiyete or 0,
+            muayene.geriatrik_depresyon or 0,
+            muayene.mmse_zaman or 0,
+            muayene.mmse_yer or 0,
+            muayene.mmse_kayithafizasi or 0,
+            muayene.mmse_dikkat or 0,
+            muayene.mmse_hatirlama or 0,
+            muayene.mmse_lisan or 0,
+            muayene.mmse or 0
+        ]
+
+        # Lab values
+        muayene_lab = [
+            float(muayene.glukoz or 0),
+            float(muayene.tam_kan_hb or 0),
+            float(muayene.tam_kan_lym or 0),
+            float(muayene.tam_kan_neu or 0),
+            float(muayene.tam_kan_plt or 0),
+            float(muayene.vitamin_b12 or 0),
+            float(muayene.tiroid_fonksiyon or 0),
+            float(muayene.ast or 0),
+            float(muayene.alt or 0),
+            float(muayene.ldh or 0),
+            float(muayene.bun or 0),
+            float(muayene.kreatinin or 0),
+            float(muayene.uric_acid or 0),
+            float(muayene.eritrosit or 0),
+            float(muayene.sedim or 0),
+        ]
+
+        # PET fields
+        muayene_pet = [
+            float(muayene.pet1 or 0),
+            float(muayene.pet2 or 0),
+            float(muayene.pet3 or 0),
+            float(muayene.pet4 or 0),
+            float(muayene.pet5 or 0),
+            float(muayene.pet6 or 0),
+            float(muayene.pet7 or 0),
+            float(muayene.pet8 or 0),
+            float(muayene.pet9 or 0),
+            float(muayene.pet10 or 0)
+        ]
+
+        # FreeSurfer
+        freesurfer = FreeSurferSonuc.objects.filter(muayene=muayene).first()
+        freesurfer = FreeSurferSonuc.objects.filter(muayene=muayene).first()
+        if freesurfer:
+            # DecimalField değerlerini al
+            freesurfer_fields = [f for f in FreeSurferSonuc._meta.get_fields() if isinstance(f, models.DecimalField)]
+
+            # FreeSurfer DecimalField verilerini toplayın
+            freesurfer_data = []
+            for field in freesurfer_fields:
+                value = getattr(freesurfer, field.name, None)
+                freesurfer_data.append(float(value or 0))
+
+            # Diagnosis alanını encode edip vektöre ekleyin
+            encoded_diagnosis = DIAGNOSIS_ENCODING.get(freesurfer.diagnosis, -1)  # Eğer diagnosis bulunamazsa -1 kullan
+            freesurfer_data.append(encoded_diagnosis)
+        else:
+            # No FreeSurfer data
+            
+            freesurfer_fields = [f for f in FreeSurferSonuc._meta.get_fields() if isinstance(f, models.DecimalField)]
+            freesurfer_data = [0]*len(freesurfer_fields)
+    else:
+        # No Muayene found:
+        muayene_booleans = [0]*7
+        muayene_cognitive = [0]*12
+        muayene_lab = [0]*15
+        muayene_pet = [0]*10
+        freesurfer_fields = [f for f in FreeSurferSonuc._meta.get_fields() if isinstance(f, models.DecimalField)]
+        freesurfer_data = [0]*len(freesurfer_fields)
+
+    full_vector = base_vector + muayene_booleans + muayene_cognitive + muayene_lab + muayene_pet + freesurfer_data
+    return full_vector
+
+def normalize_vector(vector):
+    min_val = min(vector)
+    max_val = max(vector)
+    if max_val == min_val:  # Eğer tüm değerler aynıysa hepsini 0 yap
+        return [0.0] * len(vector)
+    return [(x - min_val) / (max_val - min_val) for x in vector]
+    
+def scale_vectors(vectors):
+    # vectors: list of lists
+    # Transpose to get columns
+    cols = list(zip(*vectors))
+    scaled_cols = []
+    for col in cols:
+        col_min = min(col)
+        col_max = max(col)
+        scaled_col = normalize_vector(col)
+        scaled_cols.append(scaled_col)
+    # Transpose back
+    scaled_vectors = list(zip(*scaled_cols))
+    return [list(vec) for vec in scaled_vectors]
+
+def cosine_similarity(vec1, vec2):
+    # Calculate cosine similarity between two vectors
+    dot_product = np.dot(vec1, vec2)
+    norm1 = np.linalg.norm(vec1)
+    norm2 = np.linalg.norm(vec2)
+    if norm1 > 0 and norm2 > 0:  # Avoid division by zero
+        return dot_product / (norm1 * norm2)
+    else:
+        return 0.0
 
 def home_view(request):
     return render(request, 'home.html')
@@ -36,7 +188,7 @@ def new_examination_view(request):
         form = MuayeneForm()
     
     hasta_list = Hasta.objects.all()
-    hasta_options = [(hasta.unique_hasta_id, f"{hasta.isim} {hasta.soyisim}") for hasta in hasta_list]
+    hasta_options = [(hasta.hasta_id, f"{hasta.isim} {hasta.soyisim}") for hasta in hasta_list]
 
     return render(request, 'new_examination.html', {
         'hasta_options': hasta_options,
@@ -684,7 +836,7 @@ def freesurfer_list_view(request):
     if selected_tani and selected_tani != 'Tüm Tanılar':
         filters['diagnosis'] = selected_tani
     if selected_hasta_id and selected_hasta_id != '':
-        filters['muayene__hasta__unique_hasta_id'] = selected_hasta_id
+        filters['muayene__hasta__hasta_id'] = selected_hasta_id
 
     freesurfer_sonuclari = FreeSurferSonuc.objects.filter(**filters)
     
@@ -743,7 +895,7 @@ def export_freesurfer_to_excel(request):
     if selected_tani and selected_tani != 'Tüm Tanılar':
         filters['diagnosis'] = selected_tani
     if selected_hasta_id and selected_hasta_id != '':
-        filters['muayene__hasta__unique_hasta_id'] = selected_hasta_id
+        filters['muayene__hasta__hasta_id'] = selected_hasta_id
 
     freesurfer_sonuclari = FreeSurferSonuc.objects.filter(**filters)
 
@@ -819,11 +971,11 @@ def upload_bulk_data_view(request):
                 return HttpResponse(f"Error reading MRI file: {e}", status=400)
 
             for _, row in df.iterrows():
-                hasta_id = row.get('Patient_ID')
+                id = row.get('Patient_ID')
                 try:
-                    hasta = Hasta.objects.get(unique_hasta_id=hasta_id)
+                    hasta = Hasta.objects.get(hasta_id=id)
                 except Hasta.DoesNotExist:
-                    print(f"Hasta ID {hasta_id} not found, skipping.")
+                    print(f"Hasta ID {id} not found, skipping.")
                     continue  
                 
                 muayene = Muayene.objects.create(hasta=hasta)
@@ -954,10 +1106,10 @@ def new_patient_view(request):
         return redirect('home')
 
     return render(request, 'new_patient.html', {
-        'city_options': Hasta.SEHIR_CHOICES,
-        'cinsiyet_options': Hasta.CINSIYET_CHOICES,  # Pass gender choices
-        'medeni_durum_options': Hasta.MEDENI_DURUM_CHOICES,
-        'egitim_durum_options': Hasta.EGITIM_DURUM_CHOICES 
+        'city_options': SEHIR_CHOICES,
+        'cinsiyet_options': CINSIYET_CHOICES,  # Pass gender choices
+        'medeni_durum_options': MEDENI_DURUM_CHOICES,
+        'egitim_durum_options': EGITIM_DURUM_CHOICES 
     })
 
 def search_examination_view(request):
@@ -993,7 +1145,7 @@ def edit_examination_view(request, id):
     return render(request, 'edit_examination.html', {'form': form, 'muayene': muayene})
 
 def patient_detail_view(request, patient_id):
-    hasta = get_object_or_404(Hasta, unique_hasta_id=patient_id)
+    hasta = get_object_or_404(Hasta, hasta_id=patient_id)
     muayeneler = Muayene.objects.filter(hasta=hasta)
     return render(request, 'patient_detail_view.html', {'hasta': hasta , 'muayeneler': muayeneler})
 
@@ -1069,3 +1221,96 @@ def download_muayene_csv(request):
 
 def download_mri_csv(request):
     return generate_csv_response(FreeSurferSonuc.objects.all(), "mri.csv")
+
+def zero_percentage(vector):
+    """Vektördeki sıfır oranını hesaplar."""
+    total_elements = len(vector)
+    zero_count = vector.count(0)  # Vektördeki sıfır sayısını bul
+    return zero_count / total_elements if total_elements > 0 else 0
+
+def patient_similarity_view(request):
+    query = request.GET.get('arama', '')
+    selected_patient_id = request.GET.get('selected_patient_id', None)
+    arama_sonucu = []
+    similar_patients = []
+    selected_data = None
+    similar_data = []
+    attribute_labels = []
+
+    if query:
+        # Search patients by name or ID
+        arama_sonucu = Hasta.objects.filter(
+            Q(isim__icontains=query) | 
+            Q(soyisim__icontains=query) |
+            Q(hasta_id__icontains=query)
+        )
+
+    if selected_patient_id:
+        try:
+            selected_patient_id = int(selected_patient_id)
+            selected_patient = Hasta.objects.get(hasta_id=selected_patient_id)
+
+            # Get all patients and scale
+            all_patients = list(Hasta.objects.all())
+            all_vectors = [patient_to_vector(p) for p in all_patients]
+            scaled_all_vectors = scale_vectors(all_vectors)
+
+            # Find selected patient index
+            selected_index = next(i for i, p in enumerate(all_patients) if p.hasta_id == selected_patient_id)
+            selected_vec = scaled_all_vectors[selected_index]
+
+            # Compute distances
+            similarities = []
+            for i, p in enumerate(all_patients):
+                if p.hasta_id != selected_patient_id:
+                    similarity = cosine_similarity(selected_vec, scaled_all_vectors[i])
+                    similarities.append((p, similarity))
+
+            # Sort by similarity in descending order (higher similarity means more similar)
+            similarities.sort(key=lambda x: x[1], reverse=True)
+
+            # Belirli bir yüzdeden fazlası sıfır olan vektörleri filtreleme
+            ZERO_THRESHOLD = 0.3
+
+            filtered_similarities = [
+                (patient, similarity) for patient, similarity in similarities
+                if zero_percentage(scaled_all_vectors[all_patients.index(patient)]) <= ZERO_THRESHOLD
+            ]
+
+            # İlk 5 hastayı al
+            similar_patients = [x[0] for x in filtered_similarities[:5]]
+
+            if similar_patients:
+                # Prepare data for radar chart
+                # Just using the original 5 attributes for the radar chart
+                attribute_labels = ['Cinsiyet', 'Yaş', 'Şehir', 'Medeni Durum', 'Eğitim Durumu']
+                selected_diagnosis_enum = scaled_all_vectors[selected_index][-1]
+                selected_diagnosis = DIAGNOSIS_ENCODING.get(int(selected_diagnosis_enum), "Bilinmiyor")
+
+
+                selected_data = {
+                    'label': f"{selected_patient.isim} {selected_patient.soyisim}",
+                    'data': scaled_all_vectors[selected_index][:5]  # Only first 5 attributes for radar
+                }
+
+                similar_data = []
+                for sp in similar_patients:
+                    idx = all_patients.index(sp)
+                    similar_data.append({
+                        'label': f"{sp.isim} {sp.soyisim}",
+                        'data': scaled_all_vectors[idx][:5]
+                    })
+
+        except (Hasta.DoesNotExist, ValueError):
+            pass
+
+    context = {
+        'arama_sonucu': arama_sonucu,
+        'selected_patient_id': selected_patient_id,
+        'similar_patients': similar_patients,
+        'selected_data_json': json.dumps(selected_data),
+        'similar_data_json': json.dumps(similar_data),
+        'attribute_labels' : attribute_labels
+    }
+
+    return render(request, 'patient_similarity.html', context)
