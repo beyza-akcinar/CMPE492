@@ -22,7 +22,11 @@
             </tr>
             {% for hasta in arama_sonucu %}
             <tr>
-                <td>{{ hasta.hasta_id }}</td>
+                <td>
+                    <a href="{% url 'patient_detail_view' hasta.hasta_id %}" style="color: rgb(205, 100, 100); font-weight: bold;">
+                        {{ hasta.hasta_id }}
+                    </a>
+                </td>
                 <td>{{ hasta.isim }} {{ hasta.soyisim }}</td>
                 <td>
                     <a href="?selected_patient_id={{ hasta.hasta_id }}&arama={{ request.GET.arama|default:'' }}" style="color: rgb(205, 100, 100); font-weight: bold;">
@@ -48,16 +52,22 @@
                 <th>Şehir</th>
                 <th>Medeni Durum</th>
                 <th>Eğitim Durumu</th>
+                <th>Tanı</th>
             </tr>
             {% for p in similar_patients %}
             <tr>
-                <td>{{ p.hasta_id }}</td>
+                <td>
+                    <a href="{% url 'patient_detail_view' p.hasta_id %}" style="color: rgb(205, 100, 100); font-weight: bold;">
+                        {{ p.hasta_id }}
+                    </a>
+                </td>
                 <td>{{ p.isim }} {{ p.soyisim }}</td>
                 <td>{{ p.yas }}</td>
                 <td>{{ p.get_cinsiyet_display }}</td>
                 <td>{{ p.get_sehir_display }}</td>
                 <td>{{ p.get_medeni_durum_display }}</td>
                 <td>{{ p.get_egitim_durumu_display }}</td>
+                <td>{{ p.muayene.freesurfersonuc.diagnosis }}</td>
             </tr>
             {% endfor %}
         </table>
