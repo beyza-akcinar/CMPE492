@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<h2>Benzer Hasta Görüntüleme</h2>
+
+<form method="GET" action="{% url 'patient_similarity_view' %}">
+    {% csrf_token %}
+    <div class="search-container">
+        {% include 'components/textfield.html' with id="arama" label="Arama" name="arama" value="" placeholder="Hasta ID" style_class="search-input" %}
+        <button type="submit" class="btn-submit">Ara</button>
+    </div>
+    <p>Lütfen hasta ID ile arama yapınız.</p>
+</form>
+
+{% if arama_sonucu %}
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>Hasta ID</th>
+                <th>Seç</th>
+            </tr>
+            {% for hasta in arama_sonucu %}
+            <tr>
+                <td>
+                    <a href="{% url 'patient_detail_view' hasta.hasta_id %}" style="color: rgb(205, 100, 100); font-weight: bold;">
+                        {{ hasta.hasta_id }}
+                    </a>
+                </td>
+                <td>
+                    <a href="?selected_patient_id={{ hasta.hasta_id }}&arama={{ request.GET.arama|default:'' }}" style="color: rgb(205, 100, 100); font-weight: bold;">
+                        Seç
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endif %}
+
+{% if selected_patient_id and similar_patients %}
+    <h3>Seçilen Hasta ID: {{ selected_patient_id }}</h3>
+    <h4>En Benzer 5 Hasta</h4>
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>Hasta ID</th>
+                <th>Yaş</th>
+                <th>Cinsiyet</th>
+                <th>Medeni Durum</th>
+                <th>Tanı</th>
+            </tr>
+            {% for p in similar_patients %}
+            <tr>
+                <td>
+                    <a href="{% url 'patient_detail_view' p.hasta_id %}" style="color: rgb(205, 100, 100); font-weight: bold;">
+                        {{ p.hasta_id }}
+                    </a>
+                </td>
+                <td>{{ p.yas }}</td>
+                <td>{{ p.get_cinsiyet_display }}</td>
+                <td>{{ p.get_medeni_durum_display }}</td>
+                <td>
+                    {% with p.muayene_set.last as last_muayene %}
+                        {% if last_muayene %}
+                            {{ DIAGNOSIS_ENCODING|get_item:last_muayene.tani_encoding }}
+                        {% else %}
+                            Yok
+                        {% endif %}
+                    {% endwith %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <h3>Benzerlik Heatmap Grafiği</h3>
+    <canvas id="heatmapChart" width="600" height="400"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix"></script>
+    <script>
+        const heatmapData = {{ heatmap_data_json|safe }};
+        const attributeLabels = {{ attribute_labels|safe }};
+
+        // Map data for heatmap
+        const matrixData = [];
+        heatmapData.forEach((patient, rowIndex) => {
+            patient.attributes.forEach((value, colIndex) => {
+                matrixData.push({
+                    x: attributeLabels[colIndex],
+                    y: `Hasta ${patient.patient_id}`,
+                    v: value
+                });
+            });
+        });
+
+        const ctx = document.getElementById('heatmapChart').getContext('2d');
+        const heatmapChart = new Chart(ctx, {
+            type: 'matrix',
+            data: {
+                datasets: [{
+                    label: 'Hasta ve Özellik Benzerlikleri',
+                    data: matrixData,
+                    backgroundColor: function(ctx) {
+                        const value = ctx.dataset.data[ctx.dataIndex].v;
+                        const r = Math.floor(255 * value); // Red increases
+                        const g = Math.floor(170 - 170 * value); // Green decreases
+                        const b = Math.floor(210 - 210 * value); // Blue decreases
+                        return `rgba(${r}, ${g}, ${b}, 0.6)`; // Pastel gradient
+                    },
+                    width: function(ctx) {
+                        const a = ctx.chart.chartArea || {};
+                        return (a.right - a.left) / attributeLabels.length - 10;
+                    },
+                    height: function(ctx) {
+                        return 50; // Set a fixed box height for uniform thickness
+                    }
+                }]
+            },
+            options: {
+                layout: {
+        padding: {
+            top: 20,
+            bottom: 20,
+            left: 10,
+            right: 10
+        }
+    },
+                responsive: true,
+                aspectRatio: 2,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: function() { return ""; },
+                            label: function(context) {
+                                const v = context.raw.v.toFixed(2);
+                                return `Hasta: ${context.raw.y}, Özellik: ${context.raw.x}, Değer: ${v}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'category',
+                        labels: attributeLabels,
+                        title: {
+                            display: true,
+                            text: 'Özellikler'
+                        }
+                    },
+                    y: {
+                        type: 'category',
+                        labels: heatmapData.map(p => `Hasta ${p.patient_id}`),
+                        title: {
+                            display: true,
+                            text: 'Hastalar'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+{% endif %}
+
+     <style>
+        .search-container {
+            display: flex; 
+            align-items: center; 
+            box-sizing: border-box;
+        }
+        .textfield {
+            margin-right: 10px;
+            flex: 1;
+            box-sizing: border-box;
+        }
+        .btn-submit {
+            box-sizing: border-box;
+            margin-top: 7px;
+            height: 40px;
+        }
+        .textfield input{
+            width: 100%;
+            flex: 1;
+        }
+        .table-container {
+            overflow-x: auto; 
+            width: 100%;
+            max-width: 100%;
+            position: relative;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            border: 1px solid #d4d4d4;
+        }
+
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid #d4d4d4;
+        }
+
+        table th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+            color: #333;
+        }
+
+        table tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #dde1e6;
+        }
+
+        table tr:hover {
+            background-color: #e3e3e3;
+            transition: background-color 0.2s ease;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        h3, h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .messages {
+            list-style-type: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .messages li {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            color: #fff;
+        }
+
+        .messages li.success {
+            background-color: #75cb89; 
+        }
+    </style>
+
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni Hasta{% endblock %}
+
+{% block content %}
+{% load static %}
+    <div class="dashboard-content">
+        <h2>Yeni Hasta Kaydı</h2>
+        
+        <form method="POST" action="{% url 'new_patient' %}">  <!-- Adjust the action URL as necessary -->
+            {% csrf_token %}
+
+            {% include 'components/numberinput.html' with id='patient-id' label='Hasta ID' name='patient_id' style_class='form-control' placeholder='Hasta ID giriniz veya boş bırakınız' %}
+            
+            {% include 'components/dropdown.html' with id='medeni' label='Medeni Durum' name='medeni' options=medeni_durum_options %}
+
+            {% include 'components/dropdown.html' with id='cinsiyet' label='Cinsiyet' name='cinsiyet' options=cinsiyet_options %}
+
+            {% include 'components/numberinput.html' with id='patient-age' label='Yaş' name='patient_age' style_class='form-control' placeholder='Hasta yaşını giriniz' %}
+            
+            <button type="submit" class="btn-submit">Kaydet</button>
+        </form>
+    </div>
+{% endblock %}

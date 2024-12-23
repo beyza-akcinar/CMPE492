@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}AHVP{% endblock %}
+
+{% block content %}
+    <div class="dashboard-content">
+        <h2>Toplu Veri Yükle</h2>
+        
+        <!-- Toplu Muayene Verisi Yükle Form -->
+        <h3>Toplu Muayene Verisi Yükle</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" id="file" name="visit_file" class="form-control" accept=".xlsx, .xls">
+            <button type="submit" name="bulk_visit_submit">Yükle</button>
+        </form>
+        
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
+    </div>
+    
+{% endblock %}
