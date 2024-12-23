@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-content">
+    <h2>Hasta Detayları</h2>
+    
+    {% if hasta %}
+    <div class="patient-info">
+        {% include 'components/textfield.html' with id='hasta_id' label='Hasta ID' name='hasta_id' value=hasta.hasta_id placeholder='Hasta ID' style_class='form-control' readonly=True %}
+        {% include 'components/textfield.html' with id='cinsiyet' label='Cinsiyet' name='cinsiyet' value=hasta.get_cinsiyet_display placeholder='Cinsiyet' style_class='form-control' readonly=True %}
+        {% include 'components/textfield.html' with id='yas' label='Yaş' name='yas' value=hasta.yas placeholder='Yaş' style_class='form-control' readonly=True %}
+        {% include 'components/textfield.html' with id='medeni_durum' label='Medeni Durum' name='medeni_durum' value=hasta.get_medeni_durum_display placeholder='Medeni Durum' style_class='form-control' readonly=True %}
+    </div>
+    {% else %}
+        <p>Hasta bilgisi bulunamadı.</p>
+    {% endif %}
+    
+    <h3>Hastanın Muayene Bilgileri</h3>
+    <div class="table-container">
+        <table>
+            <tr>
+                <th>Muayene ID</th>
+                <th>Önceki muayene ile aradaki süre</th>
+                <th>Düzenle</th>
+            </tr>
+            {% for muayene in muayeneler %}
+            <tr>
+                <td>{{ muayene.id }}</td>
+                <td></td>
+                <td>
+                    <a href="{% url 'edit_examination_view' muayene.id %}" style="color: rgb(205, 100, 100); font-weight: bold;">
+                        Düzenle
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</div>
+    <!-- Styling for the table -->
+     <style>
+        .table-container {
+            overflow-x: auto; /* Yatay kaydırma */
+            width: 100%;
+            max-width: 100%;
+            position: relative;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            border: 1px solid #d4d4d4;
+        }
+
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid #d4d4d4;
+        }
+
+        table th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+            color: #333;
+        }
+
+        table tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #dde1e6;
+        }
+
+        table tr:hover {
+            background-color: #e3e3e3;
+            transition: background-color 0.2s ease;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .messages {
+            list-style-type: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .messages li {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            color: #fff; /* Text color */
+        }
+
+        .messages li.success {
+            background-color: #75cb89; /* Green for success */
+        }
+
+    </style>
+{% endblock %}

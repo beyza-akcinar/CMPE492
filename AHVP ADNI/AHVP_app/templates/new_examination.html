@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Yeni Muayene{% endblock %}
+
+{% block content %}
+{% load static %}
+    <div class="dashboard-content">
+        <h2>Yeni Muayene Oluştur</h2>
+
+        <form method="POST" action="{% url 'new_examination' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Dropdown for selecting patient -->
+            {% include 'components/dropdown.html' with id='hasta' label='Hasta ID' name='hasta' options=hasta_options %}
+
+            <!-- Date input for the visit date -->
+            {% include 'components/dateinput.html' with id='visit-date' label='Muayene Tarihi' name='visit_date' required=True%}
+            
+            <!-- Visit Code -->
+            {% include 'components/textfield.html' with id='visit-code' label='Ziyaret Kodu' name='visit_code' placeholder='Ziyaret kodunu giriniz. (Örnekler: bl, m03, m12)' style_class='form-control' %}
+
+            <!-- Cognitive Test Results -->
+            <div class="form-section">
+                <h3>Bilişsel Test Sonuçları</h3>
+                {% include 'components/numberinput.html' with id='cdrsb' label='CDRSB' name='CDRSB' style_class='form-control' placeholder='CDRSB skorunu giriniz' %}
+                {% include 'components/numberinput.html' with id='adas11' label='ADAS11' name='ADAS11' style_class='form-control' placeholder='ADAS11 skorunu giriniz' %}
+                {% include 'components/numberinput.html' with id='adas13' label='ADAS13' name='ADAS13' style_class='form-control' placeholder='ADAS13 skorunu giriniz' %}
+                {% include 'components/numberinput.html' with id='ravlt-immediate' label='RAVLT Immediate' name='RAVLT_immediate' style_class='form-control' placeholder='RAVLT Immediate skorunu giriniz' %}
+                {% include 'components/numberinput.html' with id='ravlt-learning' label='RAVLT Learning' name='RAVLT_learning' style_class='form-control' placeholder='RAVLT Learning skorunu giriniz' %}
+                {% include 'components/numberinput.html' with id='ravlt-forgetting' label='RAVLT Forgetting' name='RAVLT_forgetting' style_class='form-control' placeholder='RAVLT Forgetting skorunu giriniz' %}
+                {% include 'components/numberinput.html' with id='faq' label='FAQ' name='FAQ' style_class='form-control' placeholder='FAQ skorunu giriniz' %}
+            </div>
+
+            <!-- MRI Section -->
+            <div class="form-section">
+                <h3>MRI</h3>
+                <p>Verileri dosya veya manuel olarak yükleyiniz.</p>
+                <h4>MRI dosya ile veri yükleme</h4>
+                {% include 'components/fileinput.html' with id='mri-freesurfer' name='mri_freesurfer' label='MRI Freesurfer Sonuçları (Excel)' style_class='form-control' %}
+                <h4>MRI manuel veri yükleme</h4>
+                    {% include 'components/numberinput.html' with id='ventricles' label='Ventricles' name='ventricles' style_class='form-control' placeholder='Ventricles değerini giriniz' %}
+                    {% include 'components/numberinput.html' with id='hippocampus' label='Hippocampus' name='hippocampus' style_class='form-control' placeholder='Hippocampus değerini giriniz' %}
+                    {% include 'components/numberinput.html' with id='whole-brain' label='Whole Brain' name='whole_brain' style_class='form-control' placeholder='Whole Brain değerini giriniz' %}
+                    {% include 'components/numberinput.html' with id='entorhinal' label='Entorhinal' name='entorhinal' style_class='form-control' placeholder='Entorhinal değerini giriniz' %}
+                    {% include 'components/numberinput.html' with id='fusiform' label='Fusiform' name='fusiform' style_class='form-control' placeholder='Fusiform değerini giriniz' %}
+                    {% include 'components/numberinput.html' with id='mid-temp' label='Mid Temp' name='mid_temp' style_class='form-control' placeholder='Mid Temp değerini giriniz' %}
+            </div>
+
+            <!-- Tani Encoding -->
+            {% include 'components/dropdown.html' with id='tani-encoding' label='Tanı' name='tani_encoding' options=tani_options %}
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-submit">Kaydet</button>
+        </form>
+    </div>
+{% endblock %}

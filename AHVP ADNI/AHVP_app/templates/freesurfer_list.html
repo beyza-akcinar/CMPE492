@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Tüm FreeSurfer Sonuçları{% endblock %}
+
+{% block content %}
+
+<!-- Styling for the table -->
+    <style>
+        /* Dropdown Label */
+        form label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        /* Dropdown Select Box */
+        form select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #aaa;
+            font-size: 14px;
+            appearance: none; /* Remove default styling */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23aaa" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); /* Custom arrow */
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px 16px;
+            transition: border-color 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        /* Selected Option Color */
+        form select:valid {
+            color: black; /* Change color when an option is selected */
+        }
+
+        /* Hover and Focus Effects */
+        form select:hover, 
+        form select:focus {
+            border-color: #80bdff;
+            outline: none;
+            background-color: #f8f9fa;
+        }
+
+        /* Dropdown Options */
+        form option {
+            padding: 10px;
+            background-color: #ffffff;
+            color: black;
+        }
+
+        /* Option Hover Effect */
+        form option:hover {
+            background-color: #e9ecef;
+        }
+
+        .btn-download {
+            padding: 5px 10px; /* Smaller padding for a mini button */
+            font-size: 12px;   /* Smaller font size */
+            background-color: #93b4d7;
+            color: white;      /* White text color */
+            border: none;      /* Remove default borders */
+            border-radius: 3px; /* Slightly rounded corners */
+            cursor: pointer;   /* Change cursor to pointer on hover */
+            transition: background-color 0.3s ease; /* Smooth transition */
+            margin-top: 20px;
+        }
+
+        /* Hover effect */
+        .btn-download:hover {
+            background-color: #aaa;
+        }
+
+        /* Focus effect */
+        .btn-download:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); /* Light shadow on focus */
+        }
+
+        .table-container {
+            overflow: scroll;
+            width: 0;
+            min-width: 100%;
+            max-width: 100%;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .table2-container {
+            margin-top: 20px;
+            overflow: scroll;
+            width: 600px;
+            max-height: 500px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 12px;
+        }
+
+        table th, table td {
+            padding: 12px 15px;
+            border: 1px solid #d4d4d4;
+        }
+
+        table th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+
+        table tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #dde1e6;
+        }
+
+        table tr:hover {
+            background-color: #e3e3e3;
+            transition: background-color 0.2s ease;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        /* Sticky columns */
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .first-col {
+            left: 0px;
+        }
+
+        .second-col {
+            left: 81px;
+        }
+    </style>
+    <div class="dashboard-content">
+        <h2>Tüm FreeSurfer Sonuçları</h2>
+
+        <form method="GET" action="{% url 'freesurfer_list' %}">
+            <label for="tani">Tanıya Göre Filtrele:</label>
+            <select name="tani" id="tani">
+                <option value="">Tüm Tanılar</option>
+                {% for tani in tanilar %}
+                    <option value="{{ tani }}" {% if tani == selected_tani %} selected {% endif %}>{{ tani }}</option>
+                {% endfor %}
+            </select>
+        
+            {% include 'components/numberinput.html' with id='hasta_id' label='Hasta ID\'ye Göre Filtrele:' name='hasta_id' value=request.GET.hasta_id placeholder='Hasta ID girin' min='1' style_class='form-control' %}
+
+            <label for="columns">Sütun Seçimi:</label>
+            <select name="columns" id="columns" multiple="multiple" size="10">
+                {% for column in static_columns %}
+                    {% if column.field != 'muayene' and column.field != 'id' %}
+                        <option value="{{ column }}" {% if column in selected_columns %} selected {% endif %}>
+                            {{ column.label }}
+                        </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+
+        
+            {% include 'components/submitbutton.html' with label='Filtrele' %}
+            {% include 'components/cancelbutton.html' with label='Filtreleri İptal Et' %}
+        </form>
+        
+
+        <form method="GET" action="{% url 'export_excel' %}">
+            <input type="hidden" name="tani" value="{{ selected_tani }}">
+            <input type="hidden" name="hasta_id" value="{{ hasta_id }}">
+            <button type="submit" class="btn-download">Tabloyu İndir</button>
+        </form>
+
+        {% if freesurfer_sonuclari %}
+            <div class="table-container">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            {% for column in columns %}
+                                <th>{{ column.label }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sonuc in freesurfer_sonuclari %}
+                            <tr>
+                                {% for column in columns %}
+                                    {% if column.field == 'muayene' %}
+                                        <td>{{ sonuc.muayene.hasta.hasta_id }}</td>  {# Only show Hasta ID for the muayene column #}
+                                    {% else %}
+                                        <td>{{ sonuc|get_attr:column.field }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>Henüz kayıtlı FreeSurfer sonucu yok.</p>
+        {% endif %}
+        {% if freesurfer_sonuclari %}
+            <form method="POST" action="{% url 'freesurfer_list' %}">
+                {% csrf_token %}
+                <input type="hidden" name="tani" value="{{ selected_tani }}">
+                {% include 'components/submitbutton.html' with label='Tüm Tablo için Hesapla' %}
+            </form>
+
+            {% if statistics %}
+                <div class="table2-container">
+                    <table class="table table-bordered statistics-table">
+                        <thead>
+                            <tr>
+                                <th>Attribute</th>
+                                <th>Ortalama</th>
+                                <th>Standart Sapma</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attribute, stats in statistics.items %}
+                                <tr>
+                                    <td>{{ attribute }}</td>
+                                    <td>{{ stats.mean }}</td>
+                                    <td>{{ stats.stddev }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        {% endif %} 
+    </div>
+{% endblock %}
