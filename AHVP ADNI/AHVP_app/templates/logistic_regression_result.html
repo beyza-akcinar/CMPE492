@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Logistic Regression</h2>
+<p>Bu model, özellikler ile sonuç arasındaki <strong>doğrusal ilişkileri</strong> kullanarak bir sınıf tahmini yapar. Tahmin sürecinde özelliklerin her birinin sınıflandırma sonucuna nasıl bir etkide bulunduğunu açıkça ortaya koyar.</p>
+<!-- Tahmin Değerleri -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>Tahmin Sonuçları</h3>
+    <p><strong>Model Tahmini:</strong> {{ prediction }}</p>
+    <h4>Tahmin Olasılıkları:</h4>
+    <ul>
+        {% for class_name, prob in probabilities.items %}
+        <li><strong>{{ class_name }}:</strong> {{ prob|floatformat:2 }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+
+<!-- Katsayı Heatmap -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+
+<h3>Model Katsayıları - Heatmap</h3>
+
+<p>Bu grafik, Logistic Regression modelinin katsayılarını renk yoğunluğu ile göstermektedir. Daha koyu renkler, ilgili özelliğin sınıf tahminine olan etkisinin büyüklüğünü ifade eder.</p>
+
+<div id="heatmap" style="width: 80%; margin: auto; "></div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    const features = {{ heatmap_data.features|safe }};
+    const classes = {{ heatmap_data.classes|safe }};
+    const coefficients = {{ heatmap_data.coefficients|safe }};
+
+    const data = [{
+        z: coefficients,
+        x: features,
+        y: classes,
+        type: 'heatmap',
+        colorscale: 'Viridis'  // Renk skalasını değiştirebilirsiniz
+    }];
+
+    const layout = {
+        title: 'Logistic Regression Katsayı Heatmap',
+        xaxis: {
+            title: {
+                text: 'Özellikler',
+                font: {
+                    size: 14
+                }
+            },
+            tickangle: -45,  // Özellik isimlerini 45 derece döndür
+            automargin: true  // Etiket taşmasını önlemek için margin ayarları
+        },
+        yaxis: {
+            title: {
+                text: 'Sınıflar',
+                font: {
+                    size: 14
+                }
+            },
+            automargin: true  // Etiket taşmasını önlemek için margin ayarları
+        },
+        margin: {
+            l: 120,  // Sol margin (etiketler için alan)
+            r: 50,   // Sağ margin
+            t: 50,   // Üst margin
+            b: 120   // Alt margin (X ekseni etiketleri için alan)
+        },
+        font: {
+            size: 12
+        },
+        height: 400, // Grafiğin toplam yüksekliğini artırabilirsiniz
+        width: 900  
+    };
+
+    Plotly.newPlot('heatmap', data, layout);
+    
+</script>
+
+<!-- SHAP Bar Chart -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+
+<h3>SHAP Değerleri</h3>
+<p>Bu grafik, Logistic Regression modelindeki özelliklerin genel SHAP değerlerini göstermektedir. Daha yüksek SHAP değerleri, model için daha önemli olan özellikleri ifade eder.</p>
+<div class="chart-container" style="width: 80%; margin: auto; padding: 20px;">
+    <canvas id="shapBarChart"></canvas>
+</div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const shapFeatures = {{ general_shap.features|safe }};
+    const shapValues = {{ general_shap.shap_values|safe }};
+
+    const shapCtx = document.getElementById('shapBarChart').getContext('2d');
+    new Chart(shapCtx, {
+        type: 'bar',
+        data: {
+            labels: shapFeatures,
+            datasets: [{
+                label: 'SHAP Değerleri',
+                data: shapValues,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Genel SHAP Değerleri'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'SHAP Değeri'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Özellikler'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}

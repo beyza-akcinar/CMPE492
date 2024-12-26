@@ -1,23 +1,24 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Hasta, Muayene, MRISonuc, encrypt
+from .models import Hasta, Muayene, MRISonuc
 from .forms import MuayeneForm
 import pandas as pd
 from django.db.models import Q, Count
 import numpy as np
-from django.http import HttpResponse
+from django.http import HttpResponse,JsonResponse
 from django.db import models
 from django.contrib import messages
 import ast
-from cryptography.fernet import Fernet
 from datetime import datetime
 from django.apps import apps
 import csv
 import os
-import zipfile
 from io import BytesIO
-import math
 import json
-from .models import CINSIYET_CHOICES, MEDENI_DURUM_CHOICES
+import pickle
+import shap
+import matplotlib.pyplot as plt 
+from django.conf import settings
+from .models import CINSIYET_CHOICES, MEDENI_DURUM_CHOICES, Hasta
 
 def build_encoding_map(choices):
     return {choice[0]: idx for idx, choice in enumerate(choices)}
@@ -714,6 +715,325 @@ def upload_bulk_data_view(request):
 
             return render(request, 'bulk_data_upload.html', {'message': 'Muayene verisi başarıyla yüklendi.'})
     return render(request, 'bulk_data_upload.html')
+
+
+def get_patient_info(request):
+    patient_id = request.GET.get('patient_id')
+    if not patient_id:
+        return JsonResponse({'error': 'Hasta ID gerekli.'}, status=400)
+
+    try:
+        # Veritabanından hasta bilgilerini çek
+        patient = Hasta.objects.get(hasta_id=patient_id)
+        patient_info = {
+            'age': patient.yas,  # 'yas' alanını 'age' olarak döndürüyoruz
+            'gender': patient.cinsiyet,  # 'cinsiyet' alanını 'gender' olarak döndürüyoruz
+            'marital_status': patient.medeni_durum,  # 'medeni_durum' alanını 'marital_status' olarak döndürüyoruz
+        }
+        return JsonResponse({'patient_info': patient_info})
+    except Hasta.DoesNotExist:
+        return JsonResponse({'error': 'Geçersiz Hasta ID.'}, status=404)
+
+# *************** ML PREDICTION ******************
+
+def ml_form_submit_view(request):
+    if request.method == 'POST':
+        # Hasta ID ve muayene bilgilerini al
+        features = [
+            float(request.POST.get('CDRSB', 0)),
+            float(request.POST.get('ADAS11', 0)),
+            float(request.POST.get('ADAS13', 0)),
+            float(request.POST.get('RAVLT_immediate', 0)),
+            float(request.POST.get('RAVLT_learning', 0)),
+            float(request.POST.get('RAVLT_forgetting', 0)),
+            float(request.POST.get('FAQ', 0)),
+            float(request.POST.get('ventricles', 0)),
+            float(request.POST.get('hippocampus', 0)),
+            float(request.POST.get('whole_brain', 0)),
+            float(request.POST.get('entorhinal', 0)),
+            float(request.POST.get('fusiform', 0)),
+            float(request.POST.get('mid_temp', 0))
+        ]
+
+        # Verileri session'da sakla
+        request.session['features'] = features
+
+        # Model seçim sayfasına yönlendir
+        return redirect('model_selection_view')
+
+    return render(request, 'ml_form.html')
+
+
+class_labels = {
+    0: "MCI",
+    1: "Dementia",
+    2: "MCI to Dementia"
+}
+
+feature_names = [
+    'CDRSB', 'ADAS11', 'ADAS13', 'RAVLT Immediate',
+    'RAVLT Learning', 'RAVLT Forgetting', 'FAQ',
+    'Ventricles', 'Hippocampus', 'Whole Brain',
+    'Entorhinal', 'Fusiform', 'Mid Temp'
+]
+
+def logistic_regression_result_view(request):
+    model_path = os.path.join(settings.ML_MODELS_DIR, "logistic_regression.pkl")
+    params_path = os.path.join(settings.ML_MODELS_DIR, "logistic_regression_params.pkl")
+    shap_values_path = os.path.join(settings.ML_MODELS_DIR, "logistic_regression_shap_values.pkl")
+
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
+    with open(params_path, 'rb') as f:
+        best_params = pickle.load(f)
+    with open(shap_values_path, 'rb') as f:
+        shap_values = pickle.load(f)
+
+    coefficients = model.coef_  
+    model_classes = model.classes_
+
+    if not feature_names or len(feature_names) != coefficients.shape[1]:
+        raise ValueError("Feature names dizisi ya boş ya da katsayılarla uyumsuz uzunlukta.")
+
+    # Tahmin için kullanıcıdan gelen özellik verileri
+    features = request.session.get('features')
+    if not features or len(features) != len(feature_names):
+        raise ValueError("Features dizisi ya boş ya da beklenen uzunlukta değil. Model 13 özellik bekliyor.")
+
+    # Tahmin ve olasılıklar
+    probabilities = model.predict_proba([features])[0]
+    predicted_class = model.predict([features])[0]
+
+    # Tahmin edilen sınıf adı
+    predicted_class_name = class_labels.get(predicted_class, f"Unknown Class ({predicted_class})")
+
+    # Olasılıkları {sınıf adı: olasılık} formatına dönüştür
+    probability_dict = {
+        class_labels.get(cls, f"Unknown Class ({cls})"): prob
+        for cls, prob in zip(model_classes, probabilities)
+    }
+
+    # Heatmap için veri hazırlama
+    heatmap_data = {
+        "features": feature_names,
+        "classes": [class_labels[cls] for cls in model_classes],
+        "coefficients": coefficients.tolist()  # Katsayıları liste formatında gönder
+    }
+    shap_values_array = np.array(shap_values)  # SHAP değerleriniz
+    general_shap_values = np.mean(np.abs(shap_values_array), axis=(0, 2))  # Shape: (num_features,)
+
+    shap_data = {
+        'features': feature_names,
+        'shap_values': general_shap_values.tolist()
+    }
+    # Verileri template'e gönder
+    context = {
+        'feature_names': feature_names,
+        'probabilities': probability_dict,
+        'prediction': predicted_class_name,
+        'best_params': best_params,
+        'heatmap_data': heatmap_data,
+        'general_shap': shap_data
+    }
+
+    return render(request, 'logistic_regression_result.html', context)
+
+def random_forest_result_view(request):
+    model_path = os.path.join(settings.ML_MODELS_DIR, "random_forest.pkl")
+    params_path = os.path.join(settings.ML_MODELS_DIR, "random_forest_params.pkl")
+    shap_values_path = os.path.join(settings.ML_MODELS_DIR, "random_forest_shap_values.pkl")
+
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
+    with open(params_path, 'rb') as f:
+        best_params = pickle.load(f)
+    with open(shap_values_path, 'rb') as f:
+        shap_values = pickle.load(f)
+    feature_importances = model.feature_importances_
+
+    features = request.session.get('features')
+    if not features or len(features) != len(feature_names):
+        raise ValueError("Features dizisi ya boş ya da beklenen uzunlukta değil. Model 13 özellik bekliyor.")
+
+    probabilities = model.predict_proba([features])[0]
+    predicted_class = model.predict([features])[0]
+
+    predicted_class_name = class_labels.get(predicted_class, f"Unknown Class ({predicted_class})")
+    probability_dict = {
+        class_labels.get(cls, f"Unknown Class ({cls})"): prob
+        for cls, prob in zip(model.classes_, probabilities)
+    }
+
+        # SHAP değerlerini işlemeye başla
+    shap_values_array = np.array(shap_values)
+    general_shap_values = np.mean(np.abs(shap_values_array), axis=(0, 2))  # SHAP skorlarının genel ortalaması
+
+    # SHAP ve Feature Importance karşılaştırması için DataFrame
+    comparison_df = pd.DataFrame({
+        "Feature": feature_names,
+        "SHAP Importance": general_shap_values,
+        "RF Importance": feature_importances
+    }).sort_values(by="SHAP Importance", ascending=False)
+
+
+    context = {
+        'feature_names': feature_names,
+        'feature_importances': list(feature_importances), 
+        'probabilities': probability_dict,
+        'prediction': predicted_class_name,
+        'best_params': best_params,  # Hiperparametreler
+        "comparison": comparison_df.to_dict(orient="records")  # Karşılaştırma verilerini gönder
+
+    }
+    return render(request, 'random_forest_result.html', context)
+
+def svm_result_view(request):
+    # Model ve hiperparametre dosyalarını yükle
+    model_path = os.path.join(settings.ML_MODELS_DIR, "svm.pkl")
+    params_path = os.path.join(settings.ML_MODELS_DIR, "svm_params.pkl")
+    shap_values_path = os.path.join(settings.ML_MODELS_DIR, "svm_shap_values.pkl")
+    X_train_path = os.path.join(settings.ML_MODELS_DIR, "X_train.pkl")
+
+    # Modeli, hiperparametreleri ve SHAP değerlerini yükle
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
+    with open(params_path, 'rb') as f:
+        best_params = pickle.load(f)
+    with open(shap_values_path, 'rb') as f:
+        shap_values = pickle.load(f)
+    with open(X_train_path, 'rb') as f:
+        X_train = pickle.load(f)
+
+    # Özellik isimlerini al
+    feature_names = X_train.columns.tolist()
+
+    # SHAP değerleri kontrolü
+    if len(feature_names) != shap_values.shape[1]:
+        raise ValueError("Feature names and SHAP values dimensions do not match!")
+
+    # Genel SHAP değerlerini hesapla
+    mean_shap_values = abs(shap_values).mean(axis=0)
+    class_0_shap = mean_shap_values[:, 0].tolist()
+    class_1_shap = mean_shap_values[:, 1].tolist()
+    class_2_shap = mean_shap_values[:, 2].tolist()
+
+    # Kullanıcıdan gelen özellik verilerini session'dan al
+    features = request.session.get('features')
+    if not features or len(features) != len(feature_names):
+        raise ValueError("Features dizisi ya boş ya da beklenen uzunlukta değil. Model 13 özellik bekliyor.")
+
+    # Tahmin ve olasılık hesaplama
+    probabilities = model.predict_proba([features])[0]
+    predicted_class = model.predict([features])[0]
+
+    ordered_class_labels = [class_labels[cls] for cls in model.classes_]
+
+    # Tahmin edilen sınıf adı
+    predicted_class_name = ordered_class_labels[list(model.classes_).index(predicted_class)]
+
+    # Olasılıkları {sınıf adı: olasılık} formatına dönüştür
+    probability_dict = {
+        ordered_class_labels[i]: prob for i, prob in enumerate(probabilities)
+    }
+
+    # Template'e gönderilecek veriler
+    context = {
+        'feature_names': feature_names,
+        'mean_shap_values': mean_shap_values.mean(axis=1).tolist(),
+        'class_0_shap': class_0_shap,
+        'class_1_shap': class_1_shap,
+        'class_2_shap': class_2_shap,
+        'probabilities': probability_dict,
+        'prediction': predicted_class_name,
+        'best_params': best_params
+    }
+
+    return render(request, 'svm_result.html', context)
+
+def xgboost_result_view(request):
+    # SHAP değerleri, model ve hiperparametre dosya yollarını belirle
+    shap_values_path = os.path.join(settings.ML_MODELS_DIR, "xgboost_shap_values.pkl")
+    X_train_path = os.path.join(settings.ML_MODELS_DIR, "X_train.pkl")
+    model_path = os.path.join(settings.ML_MODELS_DIR, "xgboost.pkl")
+    params_path = os.path.join(settings.ML_MODELS_DIR, "xgboost_params.pkl")
+
+    # SHAP değerlerini yükle
+    with open(shap_values_path, 'rb') as f:
+        shap_values = pickle.load(f)
+
+    # Eğitim verilerini yükle
+    with open(X_train_path, 'rb') as f:
+        X_train = pickle.load(f)
+
+    # Hiperparametreleri yükle
+    with open(params_path, 'rb') as f:
+        best_params = pickle.load(f)
+
+    # Modeli yükle
+    with open(model_path, 'rb') as f:
+        model = pickle.load(f)
+
+    # Özellik isimlerini al
+    feature_names = X_train.columns.tolist()
+
+    # Boyut uyuşmazlığı kontrolü
+    if len(feature_names) != shap_values.shape[1]:
+        raise ValueError("Feature names and SHAP values dimensions do not match!")
+
+    # Her sınıf için ayrı ayrı ortalama SHAP değerlerini alın
+    mean_shap_values = abs(shap_values).mean(axis=0)  # Shape: (13, 3)
+
+    # Pandas DataFrame oluşturma
+    feature_importances = pd.DataFrame({
+        "feature": feature_names,
+        "class_0_importance": mean_shap_values[:, 0],
+        "class_1_importance": mean_shap_values[:, 1],
+        "class_2_importance": mean_shap_values[:, 2],
+    })
+
+    # Chart.js için veri formatı (örneğin, sınıf 0 için)
+    chart_data = {
+        "labels": feature_importances["feature"].tolist(),
+        "data": feature_importances["class_0_importance"].tolist()
+    }
+
+    # Kullanıcıdan gelen özellik verilerini session'dan al
+    features = request.session.get('features')
+    if not features or len(features) != len(feature_names):
+        raise ValueError("Features dizisi ya boş ya da beklenen uzunlukta değil. Model 13 özellik bekliyor.")
+
+    # Tahmin ve olasılık hesaplama
+    predicted_class_index = model.predict([features])[0]
+    prediction = class_labels[predicted_class_index]
+
+    probabilities = {
+        class_labels[i]: prob for i, prob in enumerate(model.predict_proba([features])[0])
+    }
+
+    # Verileri template'e gönder
+    context = {
+        "chart_data": chart_data,
+        "best_params": best_params,  # Hiperparametreler
+        "probabilities": probabilities,  # Tahmin olasılıkları
+        "prediction": prediction  # Tahmin edilen sınıf
+    }
+    return render(request, 'xgboost_result.html', context)
+
+def model_selection_view(request):
+    if request.method == 'POST':
+        model_name = request.POST.get('model_name')
+        if model_name == 'logistic_regression':
+            return logistic_regression_result_view(request)
+        elif model_name == 'random_forest':
+            return random_forest_result_view(request)
+        elif model_name == 'xgboost':
+            return xgboost_result_view(request)
+        elif model_name == 'svm':
+            return svm_result_view(request)
+
+    models = ['logistic_regression', 'random_forest', 'xgboost', 'svm']
+    return render(request, 'model_selection.html', {'models': models})
+
 
 
 def new_patient_view(request):

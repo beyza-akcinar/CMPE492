@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>XGBoost</h2>
+<p>XGBoost modeli, birçok küçük karar ağacının birlikte çalışarak daha güçlü bir tahmin yapmasını sağlar. Bu model, özellikle karmaşık verilerde hızlı ve doğru tahminler yapar. Her bir tahmin sırasında hataları öğrenerek kendini sürekli geliştiren bir yapıya sahiptir.</p>
+
+<!-- Tahmin Sonuçları -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>Tahmin Sonuçları</h3>
+    <p><strong>Model Tahmini:</strong> {{ prediction }}</p>
+    <h4>Tahmin Olasılıkları:</h4>
+    <ul>
+        {% for class_name, prob in probabilities.items %}
+        <li><strong>{{ class_name }}:</strong> {{ prob|floatformat:2 }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Kullanılan Hiperparametreler -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>Kullanılan Hiperparametreler</h3>
+    <ul>
+        {% for param, value in best_params.items %}
+        <li>
+            <strong>{{ param }}:</strong> {{ value }}
+            <p style="font-size: 0.9em; color: #666; margin-top: 5px;">
+                {% if param == "n_estimators" %}
+                Modelde kullanılan ağaç sayısını ifade eder. Daha fazla ağaç, genelde daha doğru tahminler sağlar.
+                {% elif param == "learning_rate" %}
+                Modelin her bir öğrenme adımında yaptığı değişikliklerin boyutunu belirler. Daha düşük bir öğrenme oranı, modelin daha dikkatli öğrenmesini sağlar
+                {% elif param == "max_depth" %}
+                Her bir karar ağacının ne kadar derine ineceğini belirler. Daha derin ağaçlar, verilerdeki karmaşık ilişkileri öğrenebilir, ancak bu durum bazen gereksiz detaylara odaklanmasına da neden olabilir.
+                {% endif %}
+            </p>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- SHAP Değerleri Grafiği -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>Özelliklerin Model Üzerindeki Etkisi</h3>
+    <p>Bu grafik, XGBoost modelinde her bir özelliğin sınıflandırma üzerindeki etkisini göstermektedir. Daha yüksek SHAP değerleri, modelin o özelliğe daha fazla önem verdiğini ifade eder.</p>
+    <div class="chart-container" style="width: 80%; margin: auto; padding: 20px;">
+        <canvas id="xgboostShapChart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const featureNames = {{ chart_data.labels|safe }};
+    const shapValues = {{ chart_data.data|safe }};
+
+    const ctx = document.getElementById('xgboostShapChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: featureNames,
+            datasets: [{
+                label: 'SHAP Değerleri (Özellik Katkısı)',
+                data: shapValues,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'XGBoost Özellik Katkıları (SHAP)'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'SHAP Değeri'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Özellikler'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    .chart-container {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 0px 20px;
+        background-color: #f9f9f9;
+    }
+</style>
+{% endblock %}

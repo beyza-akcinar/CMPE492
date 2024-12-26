@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Random Forest</h2>
+<p>Birden çok karar ağacını bir araya getirerek, her bir ağacın tahmininden oluşan bir oylama veya ortalama alır. Daha kararlı ve genelleştirme kabiliyeti yüksek bir modeldir.</p>
+
+<!-- Tahmin Sonuçları -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>Tahmin Sonuçları</h3>
+    <p><strong>Model Tahmini:</strong> {{ prediction }}</p>
+    <h4>Tahmin Olasılıkları:</h4>
+    <ul>
+        {% for class_name, prob in probabilities.items %}
+        <li><strong>{{ class_name }}:</strong> {{ prob|floatformat:2 }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Kullanılan Hiperparametreler -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>Kullanılan Hiperparametreler</h3>
+    <ul>
+        {% for param, value in best_params.items %}
+        <li>
+            <strong>{{ param }}:</strong> {{ value }}
+            <p style="font-size: 0.9em; color: #666; margin-top: 5px;">
+                {% if param == "max_depth" %}
+                Modelin her bir karar ağacının ne kadar derine ineceğini belirler. Daha fazla derinlik, daha detaylı öğrenme sağlar.
+                {% elif param == "min_samples_split" %}
+                Bir düğümün dallanabilmesi için gerekli olan minimum örnek sayısını belirler. Daha yüksek bir değer, daha genel kararlar alınmasını sağlar.
+                {% elif param == "n_estimators" %}
+                Orman içindeki karar ağaçlarının sayısını ifade eder. Daha fazla ağaç, genelde daha doğru tahminler sağlar.
+                {% endif %}
+            </p>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Özellik Önem Grafiği -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>Özelliklerin Model Üzerindeki Etkisi</h3>
+    <p>Bu grafik, Random Forest modelinde her bir özelliğin sınıflandırma üzerindeki önemini göstermektedir. Daha yüksek değerler, modelin bu özelliğe daha fazla önem verdiğini ifade eder.</p>
+    <div class="chart-container" style="width: 80%; margin: auto; padding: 20px;">
+        <canvas id="featureImportanceChart"></canvas>
+    </div>
+</div>
+
+<!-- SHAP ve Özellik Önemi Karşılaştırma Grafiği -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>SHAP ve Random Forest Özellik Önemi Karşılaştırması</h3>
+    <p>Bu grafik, SHAP değerleri ile Random Forest modelinin özellik önemini yan yana karşılaştırmaktadır. SHAP değerleri, modelin hangi özelliklere daha fazla önem verdiğini ve bu özelliklerin sınıflandırmadaki rolünü açıklamaya yardımcı olur. SHAP değerleri ile modelin özellik önemleri arasındaki paralellik, modelin önemli özelliklere doğru bir şekilde odaklandığını ve karar verme sürecinin mantığını anlamamıza olanak tanır.</p>
+    <div id="featureComparisonChart" style="width: 100%; height: 600px; margin: auto;"></div>
+</div>
+
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    // Backend'den gelen veriler
+    const featureNames = {{ feature_names|safe }};
+    const featureImportances = {{ feature_importances|safe }};
+    const comparisonData = {{ comparison|safe }};
+
+    // Özellik Önemi Bar Chart
+    const ctx = document.getElementById('featureImportanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: featureNames,
+            datasets: [{
+                label: 'Feature Importance',
+                data: featureImportances,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Random Forest Özellik Önemi'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Importance Value'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Features'
+                    },
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+
+    // SHAP ve Feature Importance Karşılaştırma
+    const data = [
+        {
+            x: comparisonData.map(d => d.Feature),
+            y: comparisonData.map(d => d["SHAP Importance"]),
+            name: 'SHAP Importance',
+            type: 'bar',
+            marker: { color: 'rgba(54, 162, 235, 0.7)' }
+        },
+        {
+            x: comparisonData.map(d => d.Feature),
+            y: comparisonData.map(d => d["RF Importance"]),
+            name: 'RF Importance',
+            type: 'bar',
+            marker: { color: 'rgba(255, 99, 132, 0.7)' }
+        }
+    ];
+
+    const layout = {
+        title: 'SHAP ve Random Forest Özellik Önemi Karşılaştırması',
+        barmode: 'group',
+        xaxis: {
+            title: 'Features',
+            tickangle: -45
+        },
+        yaxis: {
+            title: 'Importance Value'
+        }
+    };
+
+    Plotly.newPlot('featureComparisonChart', data, layout);
+</script>
+
+<style>
+    .chart-container {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 0px 20px;
+        background-color: #f9f9f9;
+    }
+</style>
+{% endblock %}

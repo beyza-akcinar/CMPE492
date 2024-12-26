@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Model Seçimi{% endblock %}
+
+{% block content %}
+<div class="dashboard-content">
+    <h2>Model Seçimi</h2>
+    <form method="POST" action="{% url 'model_selection_view' %}">
+        {% csrf_token %}
+        <label for="model_name">Tahmin için bir model seçin:</label>
+        <select id="model_name" name="model_name">
+            {% for model in models %}
+            <option value="{{ model }}">{{ model|capfirst }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-submit">Tahmin Yap</button>
+    </form>
+</div>
+{% endblock %}

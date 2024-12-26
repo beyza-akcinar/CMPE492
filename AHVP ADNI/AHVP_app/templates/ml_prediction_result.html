@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Tahmin Sonuçları{% endblock %}
+
+{% block content %}
+<div class="dashboard-content">
+    <h2>Tahmin Sonuçları</h2>
+    <p>Seçilen model: <strong>{{ model_name }}</strong></p>
+    <p>Tahmin edilen tanı: <strong>{{ prediction }}</strong></p>
+    <p>Olasılıklar:</p>
+    <ul>
+        {% for index, prob in probabilities.items %}
+        <li>{{ index }}: {{ prob|floatformat:2 }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'model_selection_view' %}" class="btn-submit">Başka Bir Model Seç</a>
+</div>
+{% endblock %}

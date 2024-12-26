@@ -16,7 +16,7 @@
 
             {% include 'components/dropdown.html' with id='cinsiyet' label='Cinsiyet' name='cinsiyet' options=cinsiyet_options %}
 
-            {% include 'components/numberinput.html' with id='patient-age' label='Yaş' name='patient_age' style_class='form-control' placeholder='Hasta yaşını giriniz' %}
+            {% include 'components/numberinput_required.html' with id='patient-age' label='Yaş' name='patient_age' style_class='form-control' placeholder='Hasta yaşını giriniz' %}
             
             <button type="submit" class="btn-submit">Kaydet</button>
         </form>

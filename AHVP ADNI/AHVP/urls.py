@@ -35,5 +35,10 @@ urlpatterns = [
     path('downloads/muayene/', views.download_muayene_csv, name='download_muayene_csv'),
     path('downloads/mri/', views.download_mri_csv, name='download_mri_csv'),
     path('patient_similarity/', views.patient_similarity_view, name='patient_similarity_view'),
+    path('get-patient-info/', views.get_patient_info, name='get_patient_info'),
+    path('ml-submit/', views.ml_form_submit_view, name='ml_form_submit_view'),
+    path('model-selection/', views.model_selection_view, name='model_selection_view'),
+    path('logistic-regression-result/', views.logistic_regression_result_view, name='logistic_regression_result'),
+
 
 ]

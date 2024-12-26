@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>SVM</h2>
+<p>SVM modeli, veri noktalarını belirli bir sınıfa en iyi şekilde ayıran bir sınır belirler. Bu model, özellikle veriler arasındaki sınırın belirgin olmadığı durumlarda etkili bir şekilde çalışır ve sınıflandırma süreçlerinde hassas bir çözüm sunar.</p>
+<!-- Tahmin Sonuçları -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>Tahmin Sonuçları</h3>
+    <p><strong>Model Tahmini:</strong> {{ prediction }}</p>
+    <h4>Tahmin Olasılıkları:</h4>
+    <ul>
+        {% for class_name, prob in probabilities.items %}
+        <li><strong>{{ class_name }}:</strong> {{ prob|floatformat:2 }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Kullanılan Kernel ve Hiperparametreler -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>Kullanılan Hiperparametreler</h3>
+    <ul>
+        {% for param, value in best_params.items %}
+        <li>
+            <strong>{{ param }}:</strong> {{ value }}
+            <p style="font-size: 0.9em; color: #666; margin-top: 5px;">
+                {% if param == "C" %}
+                Modelin sınıflandırma sırasında hata toleransını belirler. Daha yüksek bir değer, daha az hata toleransı anlamına gelir.
+                {% elif param == "kernel" %}
+                Veriler arasındaki ilişkiyi modellemek için kullanılan matematiksel fonksiyondur.
+                <p style="font-size: 0.9em; color: #666; margin-top: 5px;">RBF (Radial Basis Function) kernel doğrusal olmayan bir fonksiyondur, yani veriler birbirinden doğrusal olarak ayrılmıyorsa bile doğru bir sınıflandırma yapabilme yeteneğine sahiptir. Ayrıca, soft margin (yumuşak sınır) yaklaşımını kullanarak, modelin bazı yanlış sınıflandırmalara tolerans gösterir. Bu sayede aşırı öğrenme riskini azaltır.</p>
+                {% elif param == "gamma" %}
+                Modelin veriler arasındaki ilişkiyi öğrenme hızını kontrol eder. Daha düşük bir değer, daha genel kararlar alınmasına yardımcı olur.
+                {% endif %}
+            </p>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Genel SHAP Değerleri -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>Modelin Özelliklere Verdiği Genel Önem</h3>
+    <p>Bu grafik, modelin genel olarak hangi özelliklere daha fazla önem verdiğini gösterir. Daha yüksek değerler, ilgili özelliğin sınıflandırma üzerinde daha büyük bir etkisi olduğunu ifade eder.</p>
+    <div id="meanShapChartContainer" class="chart-container">
+        <canvas id="meanShapChart"></canvas>
+    </div>
+</div>
+
+<!-- Sınıf Bazlı SHAP Değerleri -->
+<div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+    <h3>Sınıf Bazlı Özellik Katkıları</h3>
+    <p>Bu grafik, her sınıf için modelin hangi özelliklere daha fazla önem verdiğini gösterir. Bu sayede, sınıflar arasındaki farklılıklar daha iyi anlaşılabilir.</p>
+    <div id="classShapChartContainer" class="chart-container">
+        <canvas id="classShapChart"></canvas>
+    </div>
+</div>
+
+<script>
+    const featureNames = {{ feature_names|safe }};
+    const meanShapValues = {{ mean_shap_values|safe }};
+    const class0ShapValues = {{ class_0_shap|safe }};
+    const class1ShapValues = {{ class_1_shap|safe }};
+    const class2ShapValues = {{ class_2_shap|safe }};
+
+    // Genel SHAP Değerleri Grafiği
+    const meanCtx = document.getElementById('meanShapChart').getContext('2d');
+    new Chart(meanCtx, {
+        type: 'bar',
+        data: {
+            labels: featureNames,
+            datasets: [{
+                label: 'Genel SHAP Değerleri',
+                data: meanShapValues,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Genel SHAP Değerleri'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'SHAP Değeri'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Özellikler'
+                    }
+                }
+            }
+        }
+    });
+
+    // Sınıf Bazlı SHAP Değerleri Grafiği
+    const classCtx = document.getElementById('classShapChart').getContext('2d');
+    new Chart(classCtx, {
+        type: 'bar',
+        data: {
+            labels: featureNames,
+            datasets: [
+                {
+                    label: 'Class 0 SHAP Değerleri',
+                    data: class0ShapValues,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Class 1 SHAP Değerleri',
+                    data: class1ShapValues,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Class 2 SHAP Değerleri',
+                    data: class2ShapValues,
+                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Sınıf Bazlı Özellik Katkıları'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'SHAP Değeri'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Özellikler'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    .chart-container {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 20px;
+        background-color: white;
+    }
+</style>
+{% endblock %}

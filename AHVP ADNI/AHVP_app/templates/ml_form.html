@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}ML Tahmin{% endblock %}
+
+{% block content %}
+<div class="dashboard-content">
+    <h2>Tanı Tahmini</h2>
+
+    <!-- Hasta ID Girişi -->
+    <div class="form-group">
+        <label for="patient-id">Hasta ID:</label>
+        <input type="text" id="patient-id" name="patient_id" class="form-control" placeholder="Hasta ID giriniz">
+        <button type="button" id="get-patient-info-btn" class="btn-submit">Bilgileri Getir</button>
+        <p id="error-message" style="color: red; display: none;"></p>
+    </div>
+
+    <!-- Hasta Bilgileri -->
+    <div id="patient-info-container" style="display: none;">
+        <h3>Hasta Bilgileri</h3>
+        <div class="form-group">
+            <label for="age">Yaş:</label>
+            <input type="number" id="age" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+            <label for="gender">Cinsiyet:</label>
+            <input type="text" id="gender" class="form-control" readonly>
+        </div>
+        <div class="form-group">
+            <label for="marital-status">Medeni Durum:</label>
+            <input type="text" id="marital-status" class="form-control" readonly>
+        </div>
+    </div>
+
+    <!-- Muayene Bilgileri -->
+    <h3>Muayene Bilgileri</h3>
+    <form method="POST" action="{% url 'ml_form_submit_view' %}">
+        {% csrf_token %}
+        <input type="hidden" id="patient-id-hidden" name="patient_id">
+
+        <!-- Bilişsel Test Sonuçları -->
+        <div class="form-section">
+            <h3>Bilişsel Test Sonuçları</h3>
+            {% include 'components/numberinput_required.html' with id='cdrsb' label='CDRSB' name='CDRSB' style_class='form-control' placeholder='CDRSB skorunu giriniz' %}
+            {% include 'components/numberinput_required.html' with id='adas11' label='ADAS11' name='ADAS11' style_class='form-control' placeholder='ADAS11 skorunu giriniz' %}
+            {% include 'components/numberinput_required.html' with id='adas13' label='ADAS13' name='ADAS13' style_class='form-control' placeholder='ADAS13 skorunu giriniz' %}
+            {% include 'components/numberinput_required.html' with id='ravlt-immediate' label='RAVLT Immediate' name='RAVLT_immediate' style_class='form-control' placeholder='RAVLT Immediate skorunu giriniz' %}
+            {% include 'components/numberinput_required.html' with id='ravlt-learning' label='RAVLT Learning' name='RAVLT_learning' style_class='form-control' placeholder='RAVLT Learning skorunu giriniz' %}
+            {% include 'components/numberinput_required.html' with id='ravlt-forgetting' label='RAVLT Forgetting' name='RAVLT_forgetting' style_class='form-control' placeholder='RAVLT Forgetting skorunu giriniz' %}
+            {% include 'components/numberinput_required.html' with id='faq' label='FAQ' name='FAQ' style_class='form-control' placeholder='FAQ skorunu giriniz' %}
+        </div>
+
+        <!-- MRI Verileri -->
+        <div class="form-section">
+            <h3>MRI</h3>
+            <p>Verileri manuel olarak yükleyiniz.</p>
+            {% include 'components/numberinput_required.html' with id='ventricles' label='Ventricles' name='ventricles' style_class='form-control' placeholder='Ventricles değerini giriniz' %}
+            {% include 'components/numberinput_required.html' with id='hippocampus' label='Hippocampus' name='hippocampus' style_class='form-control' placeholder='Hippocampus değerini giriniz' %}
+            {% include 'components/numberinput_required.html' with id='whole-brain' label='Whole Brain' name='whole_brain' style_class='form-control' placeholder='Whole Brain değerini giriniz' %}
+            {% include 'components/numberinput_required.html' with id='entorhinal' label='Entorhinal' name='entorhinal' style_class='form-control' placeholder='Entorhinal değerini giriniz' %}
+            {% include 'components/numberinput_required.html' with id='fusiform' label='Fusiform' name='fusiform' style_class='form-control' placeholder='Fusiform değerini giriniz' %}
+            {% include 'components/numberinput_required.html' with id='mid-temp' label='Mid Temp' name='mid_temp' style_class='form-control' placeholder='Mid Temp değerini giriniz' %}
+        </div>
+
+        <!-- Tahmin Et Butonu -->
+        <button type="submit" class="btn-submit">Tahmin Et</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('get-patient-info-btn').addEventListener('click', function () {
+        const patientId = document.getElementById('patient-id').value;
+        const errorMessage = document.getElementById('error-message');
+        const patientInfoContainer = document.getElementById('patient-info-container');
+        const ageInput = document.getElementById('age');
+        const genderInput = document.getElementById('gender');
+        const maritalStatusInput = document.getElementById('marital-status');
+        const patientIdHidden = document.getElementById('patient-id-hidden');
+
+        // Hataları sıfırla
+        errorMessage.style.display = 'none';
+        patientInfoContainer.style.display = 'none';
+
+        if (!patientId) {
+            errorMessage.textContent = 'Hasta ID boş olamaz.';
+            errorMessage.style.display = 'block';
+            return;
+        }
+
+        // AJAX ile bilgi çekme
+        fetch(`/get-patient-info/?patient_id=${patientId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Geçersiz Hasta ID');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hasta bilgilerini doldur
+                const patientInfo = data.patient_info;
+                ageInput.value = patientInfo.age;
+                genderInput.value = patientInfo.gender;
+                maritalStatusInput.value = patientInfo.marital_status;
+                patientIdHidden.value = patientId;
+
+                // Hasta bilgilerini göster
+                patientInfoContainer.style.display = 'block';
+            })
+            .catch(error => {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+            });
+    });
+</script>
+{% endblock %}
