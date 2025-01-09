@@ -2,7 +2,8 @@
 
 {% block content %}
 <h2>SVM</h2>
-<p>SVM modeli, veri noktalarını belirli bir sınıfa en iyi şekilde ayıran bir sınır belirler. Bu model, özellikle veriler arasındaki sınırın belirgin olmadığı durumlarda etkili bir şekilde çalışır ve sınıflandırma süreçlerinde hassas bir çözüm sunar.</p>
+<p>SVM modeli, veri noktalarını belirli bir sınıfa en iyi şekilde ayıran bir sınır belirler.</p>
+<p>Bu model, özellikle veriler arasındaki sınırın belirgin olmadığı durumlarda etkili bir şekilde çalışır ve sınıflandırma süreçlerinde hassas bir çözüm sunar.</p>
 <!-- Tahmin Sonuçları -->
 <div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
     <h3>Tahmin Sonuçları</h3>
@@ -27,7 +28,10 @@
                 Modelin sınıflandırma sırasında hata toleransını belirler. Daha yüksek bir değer, daha az hata toleransı anlamına gelir.
                 {% elif param == "kernel" %}
                 Veriler arasındaki ilişkiyi modellemek için kullanılan matematiksel fonksiyondur.
-                <p style="font-size: 0.9em; color: #666; margin-top: 5px;">RBF (Radial Basis Function) kernel doğrusal olmayan bir fonksiyondur, yani veriler birbirinden doğrusal olarak ayrılmıyorsa bile doğru bir sınıflandırma yapabilme yeteneğine sahiptir. Ayrıca, soft margin (yumuşak sınır) yaklaşımını kullanarak, modelin bazı yanlış sınıflandırmalara tolerans gösterir. Bu sayede aşırı öğrenme riskini azaltır.</p>
+                <p style="font-size: 0.9em; color: #666; margin-top: 5px;">RBF (Radial Basis Function) kernel doğrusal olmayan bir fonksiyondur,</p> 
+                <p style="font-size: 0.9em; color: #666; margin-top: 5px;">yani veriler birbirinden doğrusal olarak ayrılmıyorsa bile doğru bir sınıflandırma yapabilme yeteneğine sahiptir.</p>
+                <p style="font-size: 0.9em; color: #666; margin-top: 5px;">Ayrıca, soft margin (yumuşak sınır) yaklaşımını kullanarak, modelin bazı yanlış sınıflandırmalara tolerans gösterir.</p>
+                    <p style="font-size: 0.9em; color: #666; margin-top: 5px;">Bu sayede aşırı öğrenme riskini azaltır.</p>
                 {% elif param == "gamma" %}
                 Modelin veriler arasındaki ilişkiyi öğrenme hızını kontrol eder. Daha düşük bir değer, daha genel kararlar alınmasına yardımcı olur.
                 {% endif %}
@@ -40,8 +44,9 @@
 <!-- Genel SHAP Değerleri -->
 <div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
     <h3>Modelin Özelliklere Verdiği Genel Önem</h3>
-    <p>Bu grafik, modelin genel olarak hangi özelliklere daha fazla önem verdiğini gösterir. Daha yüksek değerler, ilgili özelliğin sınıflandırma üzerinde daha büyük bir etkisi olduğunu ifade eder.</p>
-    <div id="meanShapChartContainer" class="chart-container">
+    <p>Bu grafik, modelin genel olarak hangi özelliklere daha fazla önem verdiğini gösterir.</p>
+        <p>Daha yüksek değerler, ilgili özelliğin sınıflandırma üzerinde daha büyük bir etkisi olduğunu ifade eder.</p>
+    <div id="meanShapChartContainer" class="chart-container" style="width: 80%; margin: auto; padding: 20px;">
         <canvas id="meanShapChart"></canvas>
     </div>
 </div>
@@ -49,8 +54,9 @@
 <!-- Sınıf Bazlı SHAP Değerleri -->
 <div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
     <h3>Sınıf Bazlı Özellik Katkıları</h3>
-    <p>Bu grafik, her sınıf için modelin hangi özelliklere daha fazla önem verdiğini gösterir. Bu sayede, sınıflar arasındaki farklılıklar daha iyi anlaşılabilir.</p>
-    <div id="classShapChartContainer" class="chart-container">
+    <p>Bu grafik, her sınıf için modelin hangi özelliklere daha fazla önem verdiğini gösterir.</p>
+        <p></p>Bu sayede, sınıflar arasındaki farklılıklar daha iyi anlaşılabilir.</p>
+    <div id="classShapChartContainer" class="chart-container" style="width: 80%; margin: auto; padding: 20px;">
         <canvas id="classShapChart"></canvas>
     </div>
 </div>
@@ -77,6 +83,8 @@
             }]
         },
         options: {
+            aspectRatio: 3,
+            width: 700,
             responsive: true,
             plugins: {
                 title: {
@@ -133,6 +141,7 @@
             ]
         },
         options: {
+            aspectRatio: 3,
             responsive: true,
             plugins: {
                 title: {

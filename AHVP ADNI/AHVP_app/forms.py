@@ -20,6 +20,7 @@ class MuayeneForm(forms.ModelForm):
             'RAVLT_forgetting',
             'FAQ',
         ]
+        exclude = ['sifrelenmis_tarih']
 
 class MuayeneAramaForm(forms.Form):
     isim = forms.CharField(required=False, label="Hasta İsmi")

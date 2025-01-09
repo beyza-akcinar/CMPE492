@@ -1099,6 +1099,15 @@ def edit_examination_view(request, id):
 def patient_detail_view(request, patient_id):
     hasta = get_object_or_404(Hasta, hasta_id=patient_id)
     muayeneler = Muayene.objects.filter(hasta=hasta)
+    # Süre hesaplama
+    for i in range(1, len(muayeneler)):
+        previous_muayene = muayeneler[i - 1]
+        current_muayene = muayeneler[i]
+
+        # Süreyi hesapla
+        time_difference = Muayene.calculate_time_between_visits(previous_muayene, current_muayene)
+        current_muayene.time_difference = time_difference
+
     return render(request, 'patient_detail_view.html', {'hasta': hasta , 'muayeneler': muayeneler})
 
 def data_report_view(request):
