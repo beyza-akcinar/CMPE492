@@ -2,7 +2,8 @@
 
 {% block content %}
 <h2>Random Forest</h2>
-<p>Birden çok karar ağacını bir araya getirerek, her bir ağacın tahmininden oluşan bir oylama veya ortalama alır. Daha kararlı ve genelleştirme kabiliyeti yüksek bir modeldir.</p>
+<p>Birden çok karar ağacını bir araya getirerek, her bir ağacın tahmininden oluşan bir oylama veya ortalama alır.</p>
+<p>Daha kararlı ve genelleştirme kabiliyeti yüksek bir modeldir.</p>
 
 <!-- Tahmin Sonuçları -->
 <div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
@@ -40,7 +41,8 @@
 <!-- Özellik Önem Grafiği -->
 <div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
     <h3>Özelliklerin Model Üzerindeki Etkisi</h3>
-    <p>Bu grafik, Random Forest modelinde her bir özelliğin sınıflandırma üzerindeki önemini göstermektedir. Daha yüksek değerler, modelin bu özelliğe daha fazla önem verdiğini ifade eder.</p>
+    <p>Bu grafik, Random Forest modelinde her bir özelliğin sınıflandırma üzerindeki önemini göstermektedir.</p>
+    <p>Daha yüksek değerler, modelin bu özelliğe daha fazla önem verdiğini ifade eder.</p>
     <div class="chart-container" style="width: 80%; margin: auto; padding: 20px;">
         <canvas id="featureImportanceChart"></canvas>
     </div>
@@ -49,7 +51,10 @@
 <!-- SHAP ve Özellik Önemi Karşılaştırma Grafiği -->
 <div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
     <h3>SHAP ve Random Forest Özellik Önemi Karşılaştırması</h3>
-    <p>Bu grafik, SHAP değerleri ile Random Forest modelinin özellik önemini yan yana karşılaştırmaktadır. SHAP değerleri, modelin hangi özelliklere daha fazla önem verdiğini ve bu özelliklerin sınıflandırmadaki rolünü açıklamaya yardımcı olur. SHAP değerleri ile modelin özellik önemleri arasındaki paralellik, modelin önemli özelliklere doğru bir şekilde odaklandığını ve karar verme sürecinin mantığını anlamamıza olanak tanır.</p>
+    <p>Bu grafik, SHAP değerleri ile Random Forest modelinin özellik önemini yan yana karşılaştırmaktadır.
+        <p>SHAP değerleri, modelin hangi özelliklere daha fazla önem verdiğini ve bu özelliklerin sınıflandırmadaki rolünü açıklamaya yardımcı olur.
+            <p>SHAP değerleri ile modelin özellik önemleri arasındaki paralellik, modelin önemli özelliklere doğru bir şekilde odaklandığını ve karar verme </p> 
+                <p>sürecinin mantığını anlamamıza olanak tanır.</p>
     <div id="featureComparisonChart" style="width: 100%; height: 600px; margin: auto;"></div>
 </div>
 
@@ -68,7 +73,7 @@
         data: {
             labels: featureNames,
             datasets: [{
-                label: 'Feature Importance',
+                label: 'Özellik Önemi',
                 data: featureImportances,
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 borderColor: 'rgba(75, 192, 192, 1)',
@@ -88,13 +93,13 @@
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'Importance Value'
+                        text: 'Önem Değeri'
                     }
                 },
                 x: {
                     title: {
                         display: true,
-                        text: 'Features'
+                        text: 'Özellikler'
                     },
                     ticks: {
                         autoSkip: false,
@@ -111,14 +116,14 @@
         {
             x: comparisonData.map(d => d.Feature),
             y: comparisonData.map(d => d["SHAP Importance"]),
-            name: 'SHAP Importance',
+            name: 'SHAP Önemi',
             type: 'bar',
             marker: { color: 'rgba(54, 162, 235, 0.7)' }
         },
         {
             x: comparisonData.map(d => d.Feature),
             y: comparisonData.map(d => d["RF Importance"]),
-            name: 'RF Importance',
+            name: 'RF Önemi',
             type: 'bar',
             marker: { color: 'rgba(255, 99, 132, 0.7)' }
         }
@@ -128,11 +133,11 @@
         title: 'SHAP ve Random Forest Özellik Önemi Karşılaştırması',
         barmode: 'group',
         xaxis: {
-            title: 'Features',
+            title: 'Özellikler',
             tickangle: -45
         },
         yaxis: {
-            title: 'Importance Value'
+            title: 'Önem Değeri'
         }
     };
 

@@ -1,5 +1,5 @@
 from django.db import models
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from datetime import datetime
 
 # AES encryption key (store securely in real projects)
@@ -56,16 +56,30 @@ class Muayene(models.Model):
             self.sifrelenmis_tarih = encrypt(now)  # Encrypt the current time
         super().save(*args, **kwargs)
 
-    # Method to decrypt the date
     def get_decrypted_date(self):
-        return decrypt(self.sifrelenmis_tarih)
+        # Tarihi güvenli bir şekilde çöz
+        try:
+            return cipher_suite.decrypt(self.sifrelenmis_tarih.encode()).decode()
+        except InvalidToken:
+            return "Geçersiz şifrelenmiş veri"
 
-    # Static method to calculate time difference between two visits
     @staticmethod
     def calculate_time_between_visits(visit1, visit2):
-        date1 = datetime.strptime(decrypt(visit1.sifrelenmis_tarih), '%Y-%m-%d %H:%M:%S')
-        date2 = datetime.strptime(decrypt(visit2.sifrelenmis_tarih), '%Y-%m-%d %H:%M:%S')
-        return abs(date2 - date1)  # Return the difference as a timedelta object
+        try:
+            # İlk muayene tarihini çöz
+            date1 = datetime.strptime(
+                cipher_suite.decrypt(visit1.sifrelenmis_tarih.encode()).decode(), 
+                '%Y-%m-%d %H:%M:%S'
+            )
+            # İkinci muayene tarihini çöz
+            date2 = datetime.strptime(
+                cipher_suite.decrypt(visit2.sifrelenmis_tarih.encode()).decode(), 
+                '%Y-%m-%d %H:%M:%S'
+            )
+            # İki tarih arasındaki farkı döndür
+            return abs(date2 - date1)  # timedelta
+        except InvalidToken:
+            return "Şifre çözme hatası: Geçersiz token"
 
 class MRISonuc(models.Model):
     muayene = models.ForeignKey(Muayene, on_delete=models.CASCADE)  # FreeSurfer sonuçları muayene ile ilişkili
