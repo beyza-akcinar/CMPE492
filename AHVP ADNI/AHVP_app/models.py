@@ -69,12 +69,12 @@ class Muayene(models.Model):
 
 class MRISonuc(models.Model):
     muayene = models.ForeignKey(Muayene, on_delete=models.CASCADE)  # FreeSurfer sonuçları muayene ile ilişkili
-    ventricles = models.IntegerField(null=True, blank=True)
-    hippocampus = models.IntegerField(null=True, blank=True)
-    whole_brain = models.IntegerField(null=True, blank=True)
-    entorhinal = models.IntegerField(null=True, blank=True)
-    fusiform = models.IntegerField(null=True, blank=True)
-    mid_temp = models.IntegerField(null=True, blank=True)
+    ventricles = models.FloatField(null=True, blank=True)
+    hippocampus = models.FloatField(null=True, blank=True)
+    whole_brain = models.FloatField(null=True, blank=True)
+    entorhinal = models.FloatField(null=True, blank=True)
+    fusiform = models.FloatField(null=True, blank=True)
+    mid_temp = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return f"FreeSurfer Result for Muayene ID: {self.muayene.id}"

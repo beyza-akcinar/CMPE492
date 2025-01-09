@@ -107,7 +107,7 @@ class Command(BaseCommand):
 
             # SHAP değerlerini hesaplama
             self.stdout.write(self.style.SUCCESS(f"{model_name} için SHAP değerleri hesaplanıyor..."))
-            background_sample = shap.sample(X_train, 20)
+            background_sample = shap.sample(X_train, 3)
 
             if model_name == "svm":
                 explainer = shap.KernelExplainer(best_model.predict_proba, background_sample)
