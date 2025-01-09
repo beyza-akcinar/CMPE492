@@ -3,7 +3,8 @@
 {% block content %}
 
 <h2>Logistic Regression</h2>
-<p>Bu model, özellikler ile sonuç arasındaki <strong>doğrusal ilişkileri</strong> kullanarak bir sınıf tahmini yapar. Tahmin sürecinde özelliklerin her birinin sınıflandırma sonucuna nasıl bir etkide bulunduğunu açıkça ortaya koyar.</p>
+<p>Bu model, özellikler ile sonuç arasındaki <strong>doğrusal ilişkileri</strong> kullanarak bir sınıf tahmini yapar. </p>
+<p>Tahmin sürecinde özelliklerin her birinin sınıflandırma sonucuna nasıl bir etkide bulunduğunu açıkça ortaya koyar.</p>
 <!-- Tahmin Değerleri -->
 <div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
     <h3>Tahmin Sonuçları</h3>
@@ -22,7 +23,8 @@
 
 <h3>Model Katsayıları - Heatmap</h3>
 
-<p>Bu grafik, Logistic Regression modelinin katsayılarını renk yoğunluğu ile göstermektedir. Daha koyu renkler, ilgili özelliğin sınıf tahminine olan etkisinin büyüklüğünü ifade eder.</p>
+<p>Bu grafik, Logistic Regression modelinin katsayılarını renk yoğunluğu ile göstermektedir. </p>
+<p>Daha koyu renkler, ilgili özelliğin sınıf tahminine olan etkisinin büyüklüğünü ifade eder.</p>
 
 <div id="heatmap" style="width: 80%; margin: auto; "></div>
 </div>
@@ -72,7 +74,7 @@
             size: 12
         },
         height: 400, // Grafiğin toplam yüksekliğini artırabilirsiniz
-        width: 900  
+        width: 800  
     };
 
     Plotly.newPlot('heatmap', data, layout);
@@ -83,7 +85,8 @@
 <div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
 
 <h3>SHAP Değerleri</h3>
-<p>Bu grafik, Logistic Regression modelindeki özelliklerin genel SHAP değerlerini göstermektedir. Daha yüksek SHAP değerleri, model için daha önemli olan özellikleri ifade eder.</p>
+<p>Bu grafik, Logistic Regression modelindeki özelliklerin genel SHAP değerlerini göstermektedir.</p>
+<p>Daha yüksek SHAP değerleri, model için daha önemli olan özellikleri ifade eder.</p>
 <div class="chart-container" style="width: 80%; margin: auto; padding: 20px;">
     <canvas id="shapBarChart"></canvas>
 </div>
