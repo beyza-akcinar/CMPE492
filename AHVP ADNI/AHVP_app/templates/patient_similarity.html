@@ -73,93 +73,78 @@
             {% endfor %}
         </table>
     </div>
-    <h3>Benzerlik Heatmap Grafiği</h3>
-    <canvas id="heatmapChart" width="600" height="400"></canvas>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix"></script>
-    <script>
-        const heatmapData = {{ heatmap_data_json|safe }};
-        const attributeLabels = {{ attribute_labels|safe }};
-
-        // Map data for heatmap
-        const matrixData = [];
-        heatmapData.forEach((patient, rowIndex) => {
-            patient.attributes.forEach((value, colIndex) => {
-                matrixData.push({
-                    x: attributeLabels[colIndex],
-                    y: `Hasta ${patient.patient_id}`,
-                    v: value
-                });
-            });
-        });
-
-        const ctx = document.getElementById('heatmapChart').getContext('2d');
-        const heatmapChart = new Chart(ctx, {
-            type: 'matrix',
-            data: {
-                datasets: [{
-                    label: 'Hasta ve Özellik Benzerlikleri',
-                    data: matrixData,
-                    backgroundColor: function(ctx) {
-                        const value = ctx.dataset.data[ctx.dataIndex].v;
-                        const r = Math.floor(255 * value); // Red increases
-                        const g = Math.floor(170 - 170 * value); // Green decreases
-                        const b = Math.floor(210 - 210 * value); // Blue decreases
-                        return `rgba(${r}, ${g}, ${b}, 0.6)`; // Pastel gradient
-                    },
-                    width: function(ctx) {
-                        const a = ctx.chart.chartArea || {};
-                        return (a.right - a.left) / attributeLabels.length - 10;
-                    },
-                    height: function(ctx) {
-                        return 50; // Set a fixed box height for uniform thickness
-                    }
-                }]
-            },
-            options: {
-                layout: {
-        padding: {
-            top: 20,
-            bottom: 20,
-            left: 10,
-            right: 10
-        }
-    },
-                responsive: true,
-                aspectRatio: 2,
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            title: function() { return ""; },
-                            label: function(context) {
-                                const v = context.raw.v.toFixed(2);
-                                return `Hasta: ${context.raw.y}, Özellik: ${context.raw.x}, Değer: ${v}`;
+    <div style="margin: 10px 0; padding: 0px 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
+        <h3>Benzerlik Heatmap Grafiği</h3>
+        <p>Bu grafik, seçilen hasta ve en benzer 5 hasta arasındaki benzerlik oranlarını göstermektedir.</p>
+        <p>Daha koyu renkler, daha yüksek benzerliği ifade eder.</p>
+    
+        <div id="heatmap" style="width: 80%; margin: auto;"></div>
+    
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script><script>
+            const heatmapData = {{ heatmap_data_json|safe }};
+        
+            // Hasta ID'leri ve benzerlik matrisi
+            const patientIds = heatmapData.ids;
+            const similarityMatrix = heatmapData.matrix;
+        
+            // Verilerin eksiksiz olup olmadığını kontrol et
+            if (patientIds.length === similarityMatrix.length) {
+                const data = [{
+                    z: similarityMatrix, // Benzerlik matrisi
+                    x: [...Array(patientIds.length).keys()], // X ekseni için sıralı değerler (0, 1, 2, ...)
+                    y: [...Array(patientIds.length).keys()], // Y ekseni için sıralı değerler
+                    type: 'heatmap',
+                    colorscale: 'Viridis'  // Renk skalası
+                }];
+        
+                const layout = {
+                    title: 'Hasta Benzerlik Heatmap',
+                    xaxis: {
+                        title: {
+                            text: 'Hasta ID',
+                            font: {
+                                size: 14
                             }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        type: 'category',
-                        labels: attributeLabels,
-                        title: {
-                            display: true,
-                            text: 'Özellikler'
-                        }
+                        },
+                        tickmode: 'array',
+                        tickvals: [...Array(patientIds.length).keys()], // Eksen değerleri sıralı
+                        ticktext: patientIds, // ID'ler görünecek
+                        automargin: true
                     },
-                    y: {
-                        type: 'category',
-                        labels: heatmapData.map(p => `Hasta ${p.patient_id}`),
+                    yaxis: {
                         title: {
-                            display: true,
-                            text: 'Hastalar'
-                        }
-                    }
-                }
+                            text: 'Hasta ID',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        tickmode: 'array',
+                        tickvals: [...Array(patientIds.length).keys()], // Eksen değerleri sıralı
+                        ticktext: patientIds, // ID'ler görünecek
+                        automargin: true
+                    },
+                    margin: {
+                        l: 100,  // Sol margin
+                        r: 50,   // Sağ margin
+                        t: 50,   // Üst margin
+                        b: 100   // Alt margin
+                    },
+                    font: {
+                        size: 12
+                    },
+                    height: 600,
+                    width: 800
+                };
+        
+                Plotly.newPlot('heatmap', data, layout);
+            } else {
+                console.error('Benzerlik matrisi ve hasta ID\'lerindeki veri uyuşmazlığı!');
             }
-        });
-    </script>
+        </script>
+        
+    </div>
+    
+    
 {% endif %}
 
      <style>
