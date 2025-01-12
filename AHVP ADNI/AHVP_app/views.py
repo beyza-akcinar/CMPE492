@@ -18,7 +18,8 @@ import pickle
 import shap
 import matplotlib.pyplot as plt 
 from django.conf import settings
-from .models import CINSIYET_CHOICES, MEDENI_DURUM_CHOICES, Hasta
+from .models import CINSIYET_CHOICES, MEDENI_DURUM_CHOICES, Hasta, cipher_suite
+from sklearn.metrics.pairwise import cosine_similarity
 
 def build_encoding_map(choices):
     return {choice[0]: idx for idx, choice in enumerate(choices)}
@@ -115,7 +116,7 @@ def scale_vectors(vectors):
     scaled_vectors = list(zip(*scaled_cols))
     return [list(vec) for vec in scaled_vectors]
 
-def cosine_similarity(vec1, vec2):
+def cosine_similarity2(vec1, vec2):
     # Calculate cosine similarity between two vectors
     dot_product = np.dot(vec1, vec2)
     norm1 = np.linalg.norm(vec1)
@@ -688,9 +689,19 @@ def upload_bulk_data_view(request):
                     }
                 )
 
+                try:
+                    exam_date = row['EXAMDATE']
+                    if pd.notna(exam_date):  # Eğer tarih boş değilse
+                        encrypted_date = cipher_suite.encrypt(str(exam_date).encode()).decode()
+                    else:
+                        encrypted_date = None  # Tarih yoksa boş bırak
+                except Exception as e:
+                    return HttpResponse(f"Tarih şifrelenirken hata: {e}", status=400)
+
                 # Muayene modelini oluştur
                 muayene = Muayene.objects.create(
                     hasta=hasta,
+                    sifrelenmis_tarih=encrypted_date,
                     visit_code=row['VISCODE'],
                     tani_encoding=row['DXCHANGE'],
                     CDRSB=row.get('CDRSB'),
@@ -1227,44 +1238,36 @@ def patient_similarity_view(request):
             similarities = []
             for i, p in enumerate(all_patients):
                 if p.hasta_id != selected_patient_id:
-                    similarity = cosine_similarity(selected_vec, scaled_all_vectors[i])
+                    similarity = cosine_similarity([selected_vec], [scaled_all_vectors[i]])[0][0]
                     similarities.append((p, similarity))
 
-            # Sort by similarity in descending order (higher similarity means more similar)
+            # Sort by similarity in descending order
             similarities.sort(key=lambda x: x[1], reverse=True)
 
-            # Belirli bir yüzdeden fazlası sıfır olan vektörleri filtreleme
-            ZERO_THRESHOLD = 0.3
+            # Take the top 5 similar patients
+            similar_patients = [x[0] for x in similarities[:5]]
+            selected_and_similar_patients = [selected_patient] + similar_patients
 
-            filtered_similarities = [
-                (patient, similarity) for patient, similarity in similarities
-                if zero_percentage(scaled_all_vectors[all_patients.index(patient)]) <= ZERO_THRESHOLD
-            ]
+            # Prepare heatmap data for selected patient and top 5 similar patients
+            heatmap_ids = [p.hasta_id for p in selected_and_similar_patients]
+            heatmap_vectors = [scaled_all_vectors[all_patients.index(p)] for p in selected_and_similar_patients]
+            similarity_matrix = cosine_similarity(heatmap_vectors)
 
-            # İlk 5 hastayı al
-            similar_patients = [x[0] for x in filtered_similarities[:5]]
-
-            if similar_patients:
-                # Heatmap verisini hazırlayın
-                heatmap_data = []
-                for patient in [selected_patient] + similar_patients:
-                    idx = all_patients.index(patient)
-                    heatmap_data.append({
-                        'patient_id': patient.hasta_id,
-                        'attributes': scaled_all_vectors[idx]
-                    })
-
-        except (Hasta.DoesNotExist, ValueError):
-            pass
+            # Prepare heatmap data for the template
+            heatmap_data = {
+                'ids': heatmap_ids,
+                'matrix': similarity_matrix.tolist()
+            }
+        except (Hasta.DoesNotExist, ValueError) as e:
+            print(f"Error: {e}")
 
     context = {
         'arama_sonucu': arama_sonucu,
         'selected_patient_id': selected_patient_id,
         'similar_patients': similar_patients,
-        'selected_data_json': json.dumps(selected_data),
         'heatmap_data_json': json.dumps(heatmap_data),
-        'attribute_labels' : attribute_labels,
-        'DIAGNOSIS_ENCODING' : DIAGNOSIS_ENCODING
+        'attribute_labels': attribute_labels,
+        'DIAGNOSIS_ENCODING': DIAGNOSIS_ENCODING
     }
 
     return render(request, 'patient_similarity.html', context)
